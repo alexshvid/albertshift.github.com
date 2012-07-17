@@ -1,0 +1,10 @@
+---
+layout: post
+title: Gemfire Monitoring by using Agent with Hyperic and GFMon
+---
+
+h1. {{ page.title }}
+
+p(meta). 05 July 2012 - Moscow
+
+Coming soon

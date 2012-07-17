@@ -1,0 +1,21 @@
+---
+layout: post
+title: Gemfire PoC Template
+---
+
+h1. {{ page.title }}
+
+p(meta). 02 July 2012 - Moscow
+
+I like this template to write applications that are using Gemfire. First of all please install Gemfire in your development
+environment as I described in this "post":http://alex.shvid.com/2012/07/01/gemfire-dev-windows-environment-preparation.html.
+
+h2. Source code
+
+Source code location for PoC template is also in GitHub "here":https://github.com/shvid/gf-poc-template.
+Please use this URL to checkout project locally **https://github.com/shvid/gf-poc-template.git**
+
+h2. Structure of the project
+
+PoC template is a "Apache Maven":http://maven.apache.org project that contains **pom.xml**, **parent/pom.xml** with dependency management and Gemfire libraries in **maven** folder.
+

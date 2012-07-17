@@ -1,0 +1,10 @@
+---
+layout: post
+title: Gemfire Distributed Testing
+---
+
+h1. {{ page.title }}
+
+p(meta). 11 July 2012 - Moscow
+
+content

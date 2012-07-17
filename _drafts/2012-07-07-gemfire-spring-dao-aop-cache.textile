@@ -1,0 +1,10 @@
+---
+layout: post
+title: Gemfire Spring DAO Cache by AOP 
+---
+
+h1. {{ page.title }}
+
+p(meta). 07 July 2012 - Moscow
+
+content

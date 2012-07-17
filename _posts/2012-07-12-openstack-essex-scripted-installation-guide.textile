@@ -1,0 +1,187 @@
+---
+layout: post
+title: OpenStack Essex Scripted Installation Guide
+---
+
+h1. {{ page.title }}
+
+p(meta). 11 July 2012 - Moscow
+
+This is OpenStack Install guide on VirtualBox Under Windows
+
+**1. Download VirtualBox**
+
+The best solution is to download the latest version of the VirtualBox from this "page":https://www.virtualbox.org/wiki/Downloads
+
+I hope you are having 64 bit operation system, in this case select 64 bit VirtualBox
+
+**2. Create additional interfaces**
+
+Add two interfaces:
+* 172.16.0.254 with mask 255.255.0.0
+* 10.0.0.1 with mask 255.0.0.0
+ 
+**3. Create virtual operation system**
+
+Create new instance with name OpenStack-Essex
+Add interfaces:
+* Virtual Host Only Adapter #2 - eth0
+* Virtual Host Only Adapter #3 - eth1
+* Nat - eth2
+ 
+Setup instance:
+* 3Gb operational memory
+* 15Gb disk size
+* 4 VCPU 
+ 
+Run instance and select ubuntu-12.4-server-amd64.iso 
+ 
+**4. Install Ubuntu Server 64-bit**
+
+Select in installation steps
+
+* select eth2 as primary interface
+* entire disk
+* no proxy
+* no automatic updates
+* OpenSSH - enabled
+* install the GRUB boot loader - yes
+
+**5. Update Ubuntu Server 64-bit**
+
+Login to the ubuntu and type:
+
+bc. sudo bash
+apt-get update
+apt-get dist-upgrade
+
+**6. Setup networks**
+
+Change interfaces file 
+
+bc. sudo bash
+nano /etc/network/interfaces
+
+Insert text
+
+pre.. 
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+#Primary interface NAT interface
+auto eth0
+iface eth0 inet dhcp
+
+#public interface – The API village
+auto eth1
+iface eth1 inet static
+address 172.16.0.1
+netmask 255.255.0.0
+network 172.16.0.0
+broadcast 172.16.255.255
+
+#Private Vlan Land of Compute Nodes
+auto eth2
+iface eth2 inet manual
+up ifconfig eth2 up
+
+p. Restart the networking service
+
+bc. /etc/init.d/networking restart
+
+After restart you could connect to the virtual machine by "putty":http://the.earth.li/~sgtatham/putty/latest/x86/putty.exe,
+use the 172.16.0.1 address and 22 port
+
+**7. Checkout OpenStack Essex Installer**
+
+Install Git and checkout OpenStackInstaller
+
+bc. sudo bash
+apt-get install git-core
+exit
+git clone https://github.com/uksysadmin/OpenStackInstaller.git
+cd OpenStackInstaller
+git checkout essex
+
+change file OpenStackInstaller/OSinstall.sh
+
+from
+
+pre..  
+DEFAULT_PUBLIC_INTERFACE=eth1
+DEFAULT_PRIVATE_INTERFACE=eth0
+
+p. to
+
+pre.. 
+DEFAULT_PUBLIC_INTERFACE=eth0
+DEFAULT_PRIVATE_INTERFACE=eth1
+
+p. And other default settings if need 
+
+**8. Install OpenStack Essex**
+
+Install OpenStack Essex
+
+bc. sudo bash
+cd OpenStackInstaller
+./OSinstall.sh -F 172.16.1.0/24 -f 10.1.0.0/16 -s 512 -t demo -v qemu
+
+p. Answer 'Y' and wait 5-10 of minutes
+
+Upload first image
+
+bc. ./upload_ubuntu.sh -a admin -p openstack -t demo -C 172.16.0.1
+
+Create key_pair
+Add open ports on security group 'default'
+
+pre.. 
+TCP 22 22 0.0.0.0/0 (CIDR)
+ICMP -1 -1 0.0.0.0/0 (CIDR)
+TCP 8080 8080 0.0.0.0/0 (CIDR)
+TCP 80 80 0.0.0.0/0 (CIDR)
+
+Open page http://172.16.0.1
+Login: demo
+Password: openstack
+
+p. Enjoy
+
+**9. Install OpenStack Volume**
+
+Install nova-volume
+
+bc. sudo bash
+apt-get install nova-volume open-iscsi iscsitarget iscsitarget-dkms
+
+Enable iscsitarget
+
+bc. sed -i 's/false/true/g' /etc/default/iscsitarget
+service iscsitarget start
+service open-iscsi start
+
+Add second drive in VirtualBox to your VM
+
+Manage hard drives, you need couple of them, ensure that you are having two disks
+
+bc. fdisk -l 2>/dev/null | grep '/dev/sd[a-b]'
+
+Create physical volume on second drive
+
+bc. pvcreate /dev/sdb
+
+Create Nova Volumes group on second drive
+
+bc. vgcreate nova-volumes /dev/sdb
+
+Restart nova-volume
+
+bc. service nova-volume start
+nova-manage service list
+
+
+
+

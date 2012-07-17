@@ -1,0 +1,10 @@
+---
+layout: post
+title: Gemfire UAT Environment Installation Walkthrough from Scratch on Ubuntu
+---
+
+h1. {{ page.title }}
+
+p(meta). 03 July 2012 - Moscow
+
+content

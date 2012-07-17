@@ -1,0 +1,10 @@
+---
+layout: post
+title: Gemfire Gateways LoadBalancer
+---
+
+h1. {{ page.title }}
+
+p(meta). 09 July 2012 - Moscow
+
+content

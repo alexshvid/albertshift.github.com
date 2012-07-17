@@ -1,0 +1,10 @@
+---
+layout: post
+title: Gemfire GC Tuning
+---
+
+h1. {{ page.title }}
+
+p(meta). 04 July 2012 - Moscow
+
+content

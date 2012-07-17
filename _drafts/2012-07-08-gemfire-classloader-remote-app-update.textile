@@ -1,0 +1,10 @@
+---
+layout: post
+title: Gemfire ClassLoader for Remote App Updater
+---
+
+h1. {{ page.title }}
+
+p(meta). 08 July 2012 - Moscow
+
+content
