@@ -1,0 +1,78 @@
+---
+layout: post
+title: OpenStack Essex Installation Guide
+---
+
+h1. {{ page.title }}
+
+p(meta). 11 July 2012 - Moscow
+
+This is OpenStack Install guide on VMWare Workstation Under Windows
+
+**1. Download VMware Workstation**
+
+I hope you are having 64 bit operation system, in this case select 64 bit VMWare Workstation
+
+**2. Create Virtual Machine**
+
+Create new virtual machine with
+* 4 VCPUs
+* 3Gb memory
+* 20Gb disk space
+* eth0 NAT Network
+* eth1 Host-Only Network with Vmnet1 192.168.230.0 mask 255.255.255.0, no DHCP
+* eth2 Host-Only Network with Vmnet2 192.168.231.0 mask 255.255.255.0, no DHCP
+
+**3. Install Ubuntu Server 64-bit**
+
+Select Ubuntu Server 12.0 ISO and install operation system
+use openstack-essex name for OS and username/password
+
+Change to root:
+
+bc. sudo bash
+
+Change operation system name:
+
+bc. nano /etc/hostname
+
+Enter **openstack-essex** and save
+
+Change network interfaces:
+
+bc. nano /etc/network/interfaces
+
+Insert text
+
+pre.. 
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+#Primary interface NAT interface
+auto eth0
+iface eth0 inet dhcp
+
+#public interface – The API village
+auto eth1
+iface eth1 inet static
+address 192.168.230.1
+netmask 255.255.255.0
+network 192.168.230.0
+broadcast 192.168.230.255
+
+#Private Vlan Land of Compute Nodes
+auto eth2
+iface eth2 inet manual
+up ifconfig eth2 up
+
+p. Restart the operation system
+
+bc. shutdown -r now
+
+
+
+
+
+
