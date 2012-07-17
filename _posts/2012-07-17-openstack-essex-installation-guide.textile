@@ -38,6 +38,12 @@ bc. nano /etc/hostname
 
 Enter **openstack-essex** and save
 
+Change hosts file:
+
+bc. nano /etc/hosts
+
+Enter 192.168.230.1 openstack-essex
+
 Change network interfaces:
 
 bc. nano /etc/network/interfaces
@@ -71,8 +77,144 @@ p. Restart the operation system
 
 bc. shutdown -r now
 
+Check from Windows that VM is accessible by eth1
+
+bc. cmd
+ping 192.168.230.1
+
+In the Virtual Machine console check NAT interface  
+
+bc. ping google.com
+
+**4. Update Ubuntu Openstack-Essex**
+
+Update Ubuntu and install SSH
+
+bc. sudo bash
+apt-get update
+apt-get dist-upgrade
+apt-get install ssh ntp
+
+Connect through Putty by eth0 to the Virtual Machine
+Use UTF-8 encoding
+
+Change NTP settings:
+
+bc. nano /etc/ntp.conf
+
+Insert on top:
+
+pre.. 
+
+server ntp.ubuntu.com iburst
+server 127.127.1.0
+fudge 127.127.1.0 stratum 10
+
+p. Restart NTP service
+
+bc. service ntp restart
+
+**5.Install packages**
+
+bc. apt-get install tgt
+apt-get install open-iscsi open-iscsi-utils
+apt-get install bridge-utils
+
+Retart networking
+
+bc. /etc/init.d/networking restart
+
+Install more packages
+
+bc. apt-get install rabbitmq-server memcached python-memcache
+apt-get install kvm libvirt-bin
+apt-get install -y mysql-server python-mysqldb
+
+Create Databases:
+
+bc. mysql -u root -p
+
+bc. CREATE DATABASE keystone;
+GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY 'openstack'; 
+CREATE DATABASE nova;
+GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' IDENTIFIED BY 'openstack';
+CREATE DATABASE glance;
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY 'openstack';
+FLUSH PRIVILEGES;
+QUIT;
+
+Check connection to database:
+
+bc. mysql -u nova -p nova
+mysql -u glance -p glance
+
+Enter: 'openstack' password
+
+Change bing address of the mysql
+
+bc. nano /etc/mysql/my.cnf
+
+pre.. 
+
+/*from
+bind-address = 127.0.0.1
+/*to
+bind-address = 0.0.0.0
+
+p. Restart mysql service
+
+bc. service mysql restart
 
 
+**6.Install Keystone**
+
+Install keystone packages
+
+bc. apt-get install keystone python-keystone python-keystoneclient
+
+Change keystone settings
+
+bc. nano /etc/keystone/keystone.conf
+
+pre.. 
+
+[DEFAULT]
+admin_token = TOKEN123
+
+[sql]
+connection = mysql://keystone:openstack@localhost/keystone
+min_pool_size = 5
+max_pool_size = 10
+pool_timeout = 200
+idle_timeout = 200
+
+p. Restart Keystone service
+
+
+bc. service keystone restart
+keystone-manage db_sync
+
+Download keystone initialization script
+
+bc. wget https://github.com/downloads/nerdalert/Openstack-Essex-install-config-files/keystone.sh
+chmod +x keystone.sh
+
+Change token in script
+
+bc. nano keystone.sh 
+
+Change export SERVICE_TOKEN=”openstack” to export SERVICE_TOKEN=”TOKEN123”
+
+Run keystone script
+
+bc. ./keystone.sh
+echo $?
+
+Should return 0 if success
+
+Restart Keystone service
+
+bc. service keystone restart
 
 
 
