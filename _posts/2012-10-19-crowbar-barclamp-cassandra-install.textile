@@ -65,7 +65,7 @@ iface br0 inet dhcp
       
 bc. 
  
-The "test_framework":https://github.com/dellcloudedge/crowbar/tree/master/test_framework which is a part of Crowbar is used to deploy nodes on KVM. Run the command below to deploy Crowbar on KVM machines:
+The "test_framework":https://github.com/dellcloudedge/crowbar/tree/master/test_framework which is a part of Crowbar is used to deploy nodes on KVM. Run the command below to automatically create admin VM and several node VMs:
 
 bc. cd ~/crowbar
 ./test_framework/test_crowbar.sh single cassandra pause develop-mode use-iso crowbar-v1.3-openstack-78-g82f8aaf-dev.iso
