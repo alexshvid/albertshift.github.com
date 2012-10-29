@@ -14,7 +14,7 @@ DELL Crowbar is an opensource framework that has plugins, called barclamps, used
 **1. Crowbar ISO generation**
 
 First step is the ISO file generation that will contains all barclamps selected for this process. You can manage barclamps as sub modules for Crowbar and add/remove some of them. This ISO file will cache all packages and files necessary for barclamps. 
-In order to start building ISO file go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO describing how to start this process and then add "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra sub module by running the commands:
+In order to start building ISO file go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO describing how to start this process and then add "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra as sub module by running the commands:
 
 bc. sudo apt-get install git
 git clone https://github.com/shvid/barclamp-cassandra.git ~/crowbar/barclamps/cassandra
@@ -36,7 +36,7 @@ Later you can run the previous command without "--update-cache" option after all
 **2. Crowbar Installation**
 
 In this step you choose how you will install Crowbar on machines.
-DELL Crowbar needs one machine for an admin node and a several machines for working nodes.
+DELL Crowbar needs one machine for an admin node and several machines for working nodes.
 KVM is used for virtualization in case there is only one physical machine for testing purposes only.
 For KVM virtualization one should define interfaces in the following way:
 
