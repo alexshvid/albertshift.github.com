@@ -9,12 +9,12 @@ p(meta). 19 Oct 2012 - Moscow
 
 This is an installation and configuration guide for Apache Cassandra by using DELL Crowbar unboxer.
 
-DELL Crowbar is an opensource framework that has plugins, called barclamps, used for installing and configuring software on physical machines. I have written the "barclamp_cassandra":https://github.com/shvid/barclamp-cassandra for Apache Cassandra installation and configuration by means Crowbar Barclamps. Let's consider steps for quick installation of Cassandra on your environment.
+DELL Crowbar is an opensource framework that has plugins, called barclamps, used for installing and configuring software on physical machines. I have written the "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra for Apache Cassandra installation and configuration by means of Crowbar Barclamps. Let's consider major steps for quick installation of Cassandra on your environment.
 
 **1. Crowbar ISO generation**
 
-First step is the ISO generation that will contains all barclamps included in this process. You could manage barclamps as sub modules for Crowbar and add/remove some of them. This ISO will cache all packages and files needs for barclamps and all machines will install OS and packages from this ISO. 
-In order to start building ISO go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO that describes how to start this process, and then add barclamp_cassandra submodule by running commands:
+First step is the ISO file generation that will contains all barclamps selected for this process. You can manage barclamps as sub modules for Crowbar and add/remove some of them. This ISO file will cache all packages and files necessary for barclamps. 
+In order to start building ISO go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO that describes how to start this process, and then add barclamp-cassandra submodule by running commands:
 
 bc. sudo apt-get install git
 git clone https://github.com/shvid/barclamp-cassandra.git ~/crowbar/barclamps/cassandra
@@ -26,7 +26,7 @@ bc. [submodule "barclamps/cassandra"]
        path = barclamps/cassandra
        url = git clone https://github.com/shvid/barclamp-cassandra.git
 
-After that you need to build ISO containing barclamp_cassandra and all dependencies needed for it. Crowbar will automatically download packages and put them into ISO file.
+After that you need to build ISO containing barclamp-cassandra and all dependencies needed for it. Crowbar will automatically download packages and put them into ISO file.
 
 bc. cd ~/crowbar
 ./build_crowbar.sh ubuntu-12.04 --update-cache
