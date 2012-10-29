@@ -70,12 +70,83 @@ bc. cd ~/crowbar
  
 Your ISO name could be different, the command "./build_crowbar.sh ubuntu-12.04 --update-cache" will show you the exact name. 
  
-In case, if you are going to install Crowbar on poll of physical machines, please, take a look in to this "article":https://github.com/dellcloudedge/crowbar/wiki/Install-crowbar.
+In case, if you are going to install Crowbar on pool of physical machines, please, take a look in to this "article":https://github.com/dellcloudedge/crowbar/wiki/Install-crowbar.
 
 **3. Cassandra Installation**
 
 In case if previous steps passed successfully you will have installed barclamp_cassandra in your Admin node. Select from barclamps Cassandra and create proposal.
 
- 
+!{width: 1000px;}/images/2012-10-19/1.jpg! 
 
+Click the link "Cassandra" and then you will see proposal creation button.
+
+!{width: 1000px;}/images/2012-10-19/2.jpg! 
+
+Click the button "Create" and you will see the page with settings for Cassandra proposal.
+
+!{width: 1000px;}/images/2012-10-19/3.jpg! 
+
+The most important setting is "Cluster Name". By default it has "Test Cluster" value that it is better to change in fist time. Cluster Name is the Cassandra database name and join name for nodes. This name is important in case if you have couple of Cassandra clusters in same network. Later if you change this name, barclamp Cassandra will remove all data assosiated with previous cluster name, because new nodes can not use persistent data with another cluster name. This about cluster name in same way like database name in RDBMS systems.
+
+Other important settings are: 
+ - Storage Port
+ - SSL Storage Port
+ - RPC Port
+ - JMX Port
+ 
+All those settings are important for port customization. Storage Port and SSL Storage Port bing only to admin interface that in Crowbar is 192.168.124.0 for the purpose to be used only by Cassandra nodes. RPC and JMX Ports bind on 0.0.0.0 address to all interfaces in order to get access from Thrift external programs and JMX manage utils.
+
+Data directories settings are used to palace Cassandra data to other HDD drives and storages:
+ - Saved Caches Directory
+ - Commitlog Directory
+ - Data File Directories
+
+The last setting "Data File Directories" could have comma separated directories.
+
+All rest settings used by Cassandra in order to customize data management and to change default settings.
+
+At the end of the proposal edit page we need to select machines where we will install Cassandra.
+ 
+!{width: 1000px;}/images/2012-10-19/4.jpg! 
+
+This is a drag-n-drop interface and we could use mouse to add/remove machines for the role cassandra-server from left pool of the machines.
+
+At the end of the editing process we need to click "Apply" button and we will see success message.
+
+!{width: 1000px;}/images/2012-10-19/5.jpg! 
+
+Cassandra installed by Crowbar.
+
+**4. Cassandra installed**
+
+After Cassandra installation you cloud go to the first node machine where Cassandra has been installed and run
+
+bc. nodetool ring 
+
+This command will show you the Cassandra ring of the nodes. The initial_tokens are calculated by barclamp_cassandra by using this program:
+
+bc.. 
+
+#!/usr/bin/env ruby
+
+if ARGV.size >= 1 then
+    num=ARGV[0].to_i
+else
+    print "How many nodes are in your cluster? "
+    num = gets.to_i
+end
+
+exit if num == 0
+
+(0..num).each do |i|
+    t = i * (2**127) / num
+    print "token " + i.to_s + ": " + t.to_s + "\n"
+end
+
+p. 
+
+In case if you will add new nodes by editing proposal the barclamp_cassandra will recalculate initial_tokens only in case of new Cluster Name. In other cases barclamp_cassandra will use empty initial_tokens and initialize them from persistent data on directories.
+
+Make sure that for new cluster name barclamp_cassandra will remove all data directories "Saved Caches Directory, Commitlog Directory, Data File Directories" by command
+"rm -rf *" in order to have clear space for new cluster, all old data will be lost
 
