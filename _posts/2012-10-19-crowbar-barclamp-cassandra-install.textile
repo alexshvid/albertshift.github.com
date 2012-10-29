@@ -76,7 +76,7 @@ Otherwise, if you intend to install Crowbar on the pool of physical machines tak
 
 **3. Cassandra Installation**
 
-If the previous steps have been successfully performed barclamp-cassandra is available in your admin node. Select Cassandra from the list of barclamps below: 
+If the previous steps have been successfully performed "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra is available in your admin node. Select Cassandra from the list of barclamps below: 
 
 !{width: 1000px;}/images/2012-10-19/1.jpg! 
 
