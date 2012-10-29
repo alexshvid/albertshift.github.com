@@ -113,6 +113,7 @@ fudge 127.127.1.0 stratum 10
 p. Restart NTP service
 
 bc. service ntp restart
+ntptime
 
 **5.Install packages**
 
@@ -215,6 +216,87 @@ Should return 0 if success
 Restart Keystone service
 
 bc. service keystone restart
+
+
+**7.Install Glance**
+
+Install packages
+
+bc. sudo bash
+apt-get install glance glance-api glance-client glance-common glance-registry python-glance
+
+Change ~/.bashrc
+
+bc. nano ~/.bashrc
+
+Insert text:
+
+pre.. 
+
+export SERVICE_TOKEN=TOKEN123
+export OS_TENANT_NAME=admin
+export OS_USERNAME=admin
+export OS_PASSWORD=openstack
+export OS_AUTH_URL="http://localhost:5000/v2.0/"
+export SERVICE_ENDPOINT=http://localhost:35357/v2.0
+
+p. Restart bash and check exports
+
+bc. bash
+export
+
+Change ini files for Glance
+
+bc. nano /etc/glance/glance-registry-paste.ini
+nano /etc/glance/glance-api-paste.ini
+
+Chage properties in bottom
+
+pre.. 
+
+admin_tenant_name = admin
+admin_user = admin
+admin_password = openstack
+
+p. Change mysql connection string for Glance
+
+bc. nano /etc/glance/glance-registry.conf
+
+pre.. 
+
+sql_connection = mysql://glance:openstack@localhost/glance
+
+p. Add in bottom keystone reference
+
+bc. nano /etc/glance/glance-registry.conf
+nano /etc/glance/glance-api.conf
+
+pre.. 
+
+[paste_deploy]
+flavor = keystone
+
+p. Restart Glance
+
+bc. service glance-api restart
+service glance-registry restart
+glance-manage version_control 0
+glance-manage db_sync
+service glance-api restart
+service glance-registry restart
+
+pre.. 
+
+/*Upload Images
+/* 11.10 image
+wget http://uec-images.ubuntu.com/releases/11.10/release/ubuntu-11.10-server-cloudimg-amd64-disk1.img
+/* 12.04 image
+wget https://cloud-images.ubuntu.com/precise/current/precise-server-cloudimg-amd64-disk1.img
+
+p. Download Ubuntu images
+
+bc. glance index
+
 
 
 

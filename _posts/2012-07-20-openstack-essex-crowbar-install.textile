@@ -1,0 +1,141 @@
+---
+layout: post
+title: OpenStack Essex Crowbar Installation Guide
+---
+
+h1. {{ page.title }}
+
+p(meta). 20 July 2012 - Moscow
+
+This is OpenStack Install guide on VMWare Workstation Under Windows
+
+**1. Download ISO**
+
+Open the "page":http://cr0wbar.com/ select CrowBar OpenStack ISO and download it.
+
+At this time it is available "Crowbar 1.4 with OpenStack Essex":http://crowbar.zehicle.com/openstack-fred3.iso 
+
+**2. Create VLAN interface in VMWare Workstation**
+
+We need 192.168.124.0 with mask 255.255.255.0 network, VMnet1
+
+Change VMnet8 to have 192.168.[your VMnet8].1 router and Change in Windows->Networks->Setting->VMnet8->IPv4 Setting->IP to
+192.168.[your VMnet8].2 
+
+**3. Create Virtual Machine**
+
+Select networks:
+   1. VMnet1
+   2. VMnet8 NAT
+
+Create Virtual Machine as Linux Ubuntu-64, select custom install,
+2 cores, 2 CPUs, 4Gb Memory and 20Gb Disk.
+
+Select ISO in CD-rom, start installation
+
+Change ".vmx" file
+
+pre.. 
+
+vcpu.hotadd = FALSE
+
+p. Start installation process 
+
+
+**4. Boot and change networks** 
+
+Boot VM after installation
+
+Login: crowbar/crowbar
+
+Change user to root
+
+bc. sudo bash
+
+Enter: crowbar
+
+Change eth1 in /etc/network/interfaces
+
+Append text:
+
+pre.. 
+
+auto eth1
+iface eth1 inet dhcp
+
+p. Refresh networks
+
+bc. service networking restart
+
+Check NAT is working
+
+bc. ping google.com
+
+**5. Changing proposal for Network barclamp**
+
+Be superuser
+
+Go to network barclamp
+
+bc. cd /opt/dell/barclamps/network
+
+Edit json
+
+bc. nano chef/data_bags/crowbar/bc-template-network.json
+
+Change settings:
+
+pre.. 
+
+attributes.network.mode="dual"
+networks.public.use_vlan="false"
+networks.public.subnet=192.168.[your NAT VMnet8].0
+networks.public.netmask=255.255.255.0
+networks.public.broadcast=192.168.[your NAT VMnet8].255
+networks.public.router=192.168.[your NAT VMnet8].1
+networks.public.ranges.host.start=192.168.[your NAT VMnet8].3
+networks.public.ranges.host.end=192.168.[your NAT VMnet8].25
+networks.public.ranges.dhcp.start=192.168.[your NAT VMnet8].26
+networks.public.ranges.dhcp.end=192.168.[your NAT VMnet8].50
+
+networks.nova_floating.use_vlan="false"
+networks.nova_floating.subnet=192.168.[your NAT VMnet8].64
+networks.nova_floating.netmask=255.255.255.192
+networks.nova_floating.broadcast=192.168.[your NAT VMnet8].127
+networks.nova_floating.ranges.host.start=192.168.[your NAT VMnet8].65
+networks.nova_floating.ranges.host.end=192.168.[your NAT VMnet8].126
+
+p. Change admin block if your eth0 is not in 192.168.124.0
+
+**5. Continue normal install process**
+
+Be superuser
+
+bc. cd /tftpboot/ubuntu_dvd/extra
+
+Run install script
+
+bc. ./install admin.[your domain].com
+
+To see screen run
+
+bc. screen -r -S crowbar-install
+
+
+**6. Crowbar operation**
+
+bc. cd /opt/dell/bin
+./crowbar network allocate_ip default admin.[your domain].com public host 192.168.[your NAT VMnet8].10 -U crowbar -P crowbar
+
+Open crowbar page http://192.168.124.10:3000
+
+Login: crowbar/crowbar
+
+Open chef server page http://192.168.124.10:4040
+
+Login: admin/password
+
+Open Nagios page http://192.168.124.10/nagios3
+Open Ganglia page http://192.168.124.10/ganglia
+
+Login: nagiosadmin/password

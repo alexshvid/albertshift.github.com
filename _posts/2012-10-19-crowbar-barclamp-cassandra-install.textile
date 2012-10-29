@@ -1,0 +1,78 @@
+---
+layout: post
+title: Installation of the Cassandra by DELL Crowbar
+---
+
+h1. {{ page.title }}
+
+p(meta). 19 Oct 2012 - Moscow
+
+This is an installation and configuration guide for the Apache Cassandra by using DELL Crowbar unboxer.
+
+DELL Crowbar is an opensource framework that has plugins called barclamps that installs and configures software on physical machines. I have written the "barclamp_cassandra":https://github.com/shvid/barclamp-cassandra for Apache Cassandra installation and configuration through Crowbar. Let's consider steps for quick installation of the Cassandra on your environment.
+
+**1. Crowbar ISO generation**
+
+First step is the ISO generation that will contains all barclamps included in this process. You could manage barclamps as sub modules for Crowbar and add/remove some of them. This ISO will cache all packages and files needs for barclamps and all machines will install OS and packages from this ISO. 
+In order to start building ISO go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO that describes how to start this process, and then add barclamp_cassandra submodule by running commands:
+
+bc. sudo apt-get install git
+git clone https://github.com/shvid/barclamp-cassandra.git ~/crowbar/barclamps/cassandra
+nano ~/crowbar/.gitmodules
+
+Insert text:
+
+bc. [submodule "barclamps/cassandra"]
+       path = barclamps/cassandra
+       url = git clone https://github.com/shvid/barclamp-cassandra.git
+
+After that you need to build ISO that will contain barclamp_cassandra and all dependencies needed for it. Crowbar will automatically download packages and put them to ISO.
+
+bc. cd ~/crowbar
+./build_crowbar.sh ubuntu-12.04 --update-cache
+
+**2. Crowbar Installation**
+
+In this step, please, select how you will install Crowbar on machines.
+DELL Crowbar needs as minimum one machine for Admin node and some machines for working nodes.
+You could use KVM for virtualization in case of having one physical machine.
+In this case please define interfaces like this:
+
+bc.. # The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet manual
+        up ifconfig $IFACE 0.0.0.0 up
+        up ifconfig $IFACE promisc
+
+auto eth1
+iface eth1 inet manual
+        up ifconfig $IFACE 0.0.0.0 up
+        up ifconfig $IFACE promisc
+
+auto br0
+iface br0 inet dhcp
+        bridge_ports eth0
+        bridge_fd 9
+        bridge_hello 2
+        bridge_maxage 12
+        bridge_stp off
+      
+bc. 
+ 
+And after that you could up machines by using "test_framework":https://github.com/dellcloudedge/crowbar/tree/master/test_framework that is a part of the Crowbar on your machine. In this case run this command:
+
+bc. cd ~/crowbar
+./test_framework/test_crowbar.sh single cassandra pause develop-mode use-iso crowbar-v1.3-openstack-78-g82f8aaf-dev.iso
+ 
+Your ISO name could be different, the command "./build_crowbar.sh ubuntu-12.04 --update-cache" will show you the exact name. 
+ 
+In case, if you are going to install Crowbar on poll of physical machines, please, take a look in to this "article":https://github.com/dellcloudedge/crowbar/wiki/Install-crowbar.
+
+**3. Cassandra Installation**
+
+
+
