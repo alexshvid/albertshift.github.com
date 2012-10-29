@@ -117,15 +117,15 @@ Finally we click "Apply" button and see a success message.
 
 !{width: 1000px;}/images/2012-10-19/5.jpg! 
 
-Thus Cassandra is installed by meens of Crowbar.
+Thus, Cassandra is installed by means of Crowbar.
 
 **4. Cassandra validation**
 
-After Cassandra installation you can go to the first machine where Cassandra has been installed and run
+After Cassandra installation you can go to the first machine where Cassandra has been installed and run:
 
 bc. nodetool ring 
 
-This command will show you the Cassandra's ring of the nodes. The initial_tokens are calculated by barclamp_cassandra by using this ruby program:
+This command will show you Cassandra's ring of all nodes. The initial_tokens are calculated via the following Ruby program used in "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra:
 
 bc.. 
 
@@ -147,8 +147,8 @@ end
 
 p. 
 
-In case if you will add new nodes by editing proposal the barclamp_cassandra will recalculate initial_tokens only in case of new Cluster Name. In other cases barclamp_cassandra will use empty initial_tokens and initialize them from persistent data on directories. New instances will take place in ring by Cassandra's algorithm.
+If you add new nodes while editing proposal "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra will recalculate initial_tokens only in case of new Cluster Name. In other cases "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra will use empty initial_tokens and initialize them from persistent data on directories. New instances will take place in ring by Cassandra's algorithm.
 
-Make sure that for new cluster name barclamp_cassandra will remove all data in directories "Saved Caches Directory, Commitlog Directory, Data File Directories" by command
+Make sure that for new cluster name "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra will remove all data in directories "Saved Caches Directory, Commitlog Directory, Data File Directories" by command
 "rm -rf *" in order to have clear space for new cluster, old data will be lost
 
