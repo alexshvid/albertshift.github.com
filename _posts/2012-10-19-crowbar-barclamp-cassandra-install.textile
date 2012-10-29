@@ -147,8 +147,8 @@ end
 
 p. 
 
-If you add new nodes while editing proposal "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra will recalculate initial_tokens only in case of new Cluster Name. In other cases "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra will use empty initial_tokens and initialize them from persistent data on directories. New instances will take place in ring by Cassandra's algorithm.
+If you add new nodes while editing proposal "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra will recalculate initial_tokens only in case of new Cluster Name. In other cases "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra will use empty initial_tokens and initialize them from persistent data in directories. New instances will take place in the ring in accordance with Cassandra's algorithm.
 
-Make sure that for new cluster name "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra will remove all data in directories "Saved Caches Directory, Commitlog Directory, Data File Directories" by command
-"rm -rf *" in order to have clear space for new cluster, old data will be lost
+If you change Cluster Name by editing proposal make sure "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra removes all data in directories "Saved Caches Directory, Commitlog Directory, Data File Directories" by using command
+"rm -rf *" in order to have some clear space for the new cluster.
 
