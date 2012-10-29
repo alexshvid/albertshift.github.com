@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Installation of the Cassandra by DELL Crowbar
+title: Installation of Cassandra by DELL Crowbar
 ---
 
 h1. {{ page.title }}
