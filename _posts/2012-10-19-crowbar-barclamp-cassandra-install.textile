@@ -7,7 +7,7 @@ h1. {{ page.title }}
 
 p(meta). 19 Oct 2012 - Moscow
 
-This is an installation and configuration guide for the Apache Cassandra by using DELL Crowbar unboxer.
+This is an installation and configuration guide for Apache Cassandra by using DELL Crowbar unboxer.
 
 DELL Crowbar is an opensource framework that has plugins called barclamps that installs and configures software on physical machines. I have written the "barclamp_cassandra":https://github.com/shvid/barclamp-cassandra for Apache Cassandra installation and configuration by means Crowbar Barclamps. Let's consider steps for quick installation of Cassandra on your environment.
 
