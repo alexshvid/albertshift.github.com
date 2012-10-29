@@ -63,7 +63,7 @@ iface br0 inet dhcp
       
 bc. 
  
-And after that you could up machines by using "test_framework":https://github.com/dellcloudedge/crowbar/tree/master/test_framework that is a part of the Crowbar on your machine. In this case run this command:
+And after that you could up KVM machines by using "test_framework":https://github.com/dellcloudedge/crowbar/tree/master/test_framework that is a part of the Crowbar. In this case run this command:
 
 bc. cd ~/crowbar
 ./test_framework/test_crowbar.sh single cassandra pause develop-mode use-iso crowbar-v1.3-openstack-78-g82f8aaf-dev.iso
@@ -74,5 +74,8 @@ In case, if you are going to install Crowbar on poll of physical machines, pleas
 
 **3. Cassandra Installation**
 
+In case if previous steps passed successfully you will have installed barclamp_cassandra in your Admin node. Select from barclamps Cassandra and create proposal.
+
+ 
 
 
