@@ -14,30 +14,30 @@ DELL Crowbar is an opensource framework that has plugins, called barclamps, used
 **1. Crowbar ISO generation**
 
 First step is the ISO file generation that will contains all barclamps selected for this process. You can manage barclamps as sub modules for Crowbar and add/remove some of them. This ISO file will cache all packages and files necessary for barclamps. 
-In order to start building ISO go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO that describes how to start this process, and then add barclamp-cassandra submodule by running commands:
+In order to start building ISO file go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO describing how to start this process and then add barclamp-cassandra sub module by running the commands:
 
 bc. sudo apt-get install git
 git clone https://github.com/shvid/barclamp-cassandra.git ~/crowbar/barclamps/cassandra
 nano ~/crowbar/.gitmodules
 
-Insert text:
+Insert the text at the end of the '.gitmodules' file:
 
 bc. [submodule "barclamps/cassandra"]
        path = barclamps/cassandra
        url = git clone https://github.com/shvid/barclamp-cassandra.git
 
-After that you need to build ISO containing barclamp-cassandra and all dependencies needed for it. Crowbar will automatically download packages and put them into ISO file.
+After that you need to build ISO file containing barclamp-cassandra and all dependencies needed for it. Crowbar will automatically download packages and put them into ISO file.
 
 bc. cd ~/crowbar
 ./build_crowbar.sh ubuntu-12.04 --update-cache
 
-You could run it without "--update-cache" later.
+Later you can run the previous command without "--update-cache" option after all dependencies are cached.
 
 **2. Crowbar Installation**
 
-In this step, please, select how you will install Crowbar on machines.
-DELL Crowbar needs at least one machine for an admin node and some machines for working nodes.
-You could use KVM for virtualization in case there is only one physical machine.
+In this step you choose how you will install Crowbar on machines.
+DELL Crowbar needs one machine for an admin node and a several machines for working nodes.
+KVM is used for virtualization in case there is only one physical machine for testing purposes only.
 For KVM virtualization one should define interfaces in the following way:
 
 bc.. # The loopback network interface
@@ -65,7 +65,7 @@ iface br0 inet dhcp
       
 bc. 
  
-You could use the "test_framework":https://github.com/dellcloudedge/crowbar/tree/master/test_framework which is a part of Crowbar to deploy nodes on KVM by running the command below:
+The "test_framework":https://github.com/dellcloudedge/crowbar/tree/master/test_framework which is a part of Crowbar is used to deploy nodes on KVM. Run the command below to deploy Crowbar on KVM machines:
 
 bc. cd ~/crowbar
 ./test_framework/test_crowbar.sh single cassandra pause develop-mode use-iso crowbar-v1.3-openstack-78-g82f8aaf-dev.iso
