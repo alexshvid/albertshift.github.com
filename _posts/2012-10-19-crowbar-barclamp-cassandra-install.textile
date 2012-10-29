@@ -14,7 +14,7 @@ DELL Crowbar is an opensource framework that has plugins, called barclamps, used
 **1. Crowbar ISO generation**
 
 First step is the ISO file generation that will contains all barclamps selected for this process. You can manage barclamps as sub modules for Crowbar and add/remove some of them. This ISO file will cache all packages and files necessary for barclamps. 
-In order to start building ISO file go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO describing how to start this process and then add barclamp-cassandra sub module by running the commands:
+In order to start building ISO file go to this "page":https://github.com/dellcloudedge/crowbar/wiki/Build-Crowbar.ISO describing how to start this process and then add "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra sub module by running the commands:
 
 bc. sudo apt-get install git
 git clone https://github.com/shvid/barclamp-cassandra.git ~/crowbar/barclamps/cassandra
@@ -26,7 +26,7 @@ bc. [submodule "barclamps/cassandra"]
        path = barclamps/cassandra
        url = git clone https://github.com/shvid/barclamp-cassandra.git
 
-After that you need to build ISO file containing barclamp-cassandra and all dependencies needed for it. Crowbar will automatically download packages and put them into ISO file.
+After that you need to build ISO file containing "barclamp-cassandra":https://github.com/shvid/barclamp-cassandra and all dependencies needed for it. Crowbar will automatically download packages and put them into ISO file.
 
 bc. cd ~/crowbar
 ./build_crowbar.sh ubuntu-12.04 --update-cache
@@ -72,15 +72,15 @@ bc. cd ~/crowbar
  
 Your ISO file name could be different, the command "./build_crowbar.sh ubuntu-12.04 --update-cache" ran previously will show you the exact name. 
  
-Otherwise, if you intend to install Crowbar on the pool of physical machines, please, take a look at this "article":https://github.com/dellcloudedge/crowbar/wiki/Install-crowbar.
+Otherwise, if you intend to install Crowbar on the pool of physical machines take a look at this "article":https://github.com/dellcloudedge/crowbar/wiki/Install-crowbar.
 
 **3. Cassandra Installation**
 
-If the previous steps have been successfully performed barclamp_cassandra is available in your admin node. Select Cassandra from the list of barclamps below: 
+If the previous steps have been successfully performed barclamp-cassandra is available in your admin node. Select Cassandra from the list of barclamps below: 
 
 !{width: 1000px;}/images/2012-10-19/1.jpg! 
 
-On clicking the link "Cassandra" you will see a new proposal creation form. In this form you could change the name of a new proposal.
+On clicking the link "Cassandra" you will see a new proposal creation form where you can change the name of a new proposal.
 
 !{width: 1000px;}/images/2012-10-19/2.jpg! 
 
@@ -88,7 +88,7 @@ On clicking the button "Create" you will see the page with proposal's editing se
 
 !{width: 1000px;}/images/2012-10-19/3.jpg! 
 
-The most important setting is "Cluster Name". By default it has "Test Cluster" value which is better to be changed initially (in the proposal creation step). Cluster Name are used by nodes to join together into a cluster. Additionally Cassandra creates persistent directories with Cluster Name mark. If you change Cluster Name later, barclamp Cassandra will erase data directories associated with the previous Cluster Name to avoid data version conflicts. You can change data directories paths to keep data for the previous Cluster Name while editing the proposal.
+The most important setting is "Cluster Name". By default it has "Test Cluster" value which is better to be changed initially (in the proposal creation step). Cluster Name is used by nodes to join together into a cluster. Additionally Cassandra creates persistent directories with Cluster Name mark. If you change Cluster Name later, barclamp Cassandra will erase data directories associated with the previous Cluster Name to avoid data version conflicts. You can change data directories paths to keep data for the previous Cluster Name while editing the proposal.
 
 Other important settings are: 
  - Storage Port;
@@ -96,30 +96,30 @@ Other important settings are:
  - RPC Port;
  - JMX Port.
  
-All those settings are important for port customization. Cassandra uses admin interface for binding Storage Port and SSL Storage Port. The default admin interface for Crowbar is 192.168.124.0. Cassandra nodes communicate through each other by this interface in cluster. Otherwise, RPC and JMX Ports have to be accessible from other networks, and Cassandra uses 0.0.0.0 address assignable to all interfaces to bind them. RPC Port is used by Thrift external programs and JMX Port is used by monitoring tools.
+All those settings are important for port customization. Cassandra uses admin interface for binding Storage Port and SSL Storage Port up. By default admin interface for Crowbar is 192.168.124.0. Cassandra nodes communicate with each other by this interface in the cluster. Otherwise, RPC and JMX Ports have to be accessible from other networks, and Cassandra uses 0.0.0.0 address assignable to all interfaces to bind them up. RPC Port is used by Thrift external programs and JMX Port is used by monitoring tools.
 
-Data directories are used to place Cassandra data files to different HDD drives if need:
+Data directories are used to place Cassandra data files to different HDD drives if needed:
  - Saved Caches Directory;
  - Commitlog Directory;
  - Data File Directories.
 
-The last setting "Data File Directories" could have comma separated directories.
+The last setting "Data File Directories" can have comma separated directories.
 
-You can change all rest settings to customize Cassandra for your needs.
+You can change rest settings to customize Cassandra for your needs.
 
-At the end of the proposal's edit page we need to select machines where we will install Cassandra instances.
+At the end of the proposal's edit page we need to select machines where Cassandra instances are to be installed.
  
 !{width: 1000px;}/images/2012-10-19/4.jpg! 
 
 This is a drag-n-drop interface and we can use mouse to add/remove machines for the role 'cassandra-server'.
 
-At the end we need to click "Apply" button and we will see success message.
+Finally we click "Apply" button and see a success message.
 
 !{width: 1000px;}/images/2012-10-19/5.jpg! 
 
-Cassandra installed by Crowbar.
+Thus Cassandra is installed by meens of Crowbar.
 
-**4. Cassandra installed**
+**4. Cassandra validation**
 
 After Cassandra installation you can go to the first machine where Cassandra has been installed and run
 
