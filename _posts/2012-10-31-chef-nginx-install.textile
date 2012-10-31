@@ -1,0 +1,49 @@
+---
+layout: post
+title: How to install Nginx by Chef
+---
+
+h1. {{ page.title }}
+
+p(meta). 31 Oct 2012 - Moscow
+
+This is an example how to install Nginx by Chef. Previously I have written "article":/2012/10/31/chef-ubuntu-install.html how to install Chef on Ubuntu and now we will try to install the first cookbook on this environment.
+
+**1. Download cookbook**
+
+Create cookbook directory:
+
+bc. sudo mkdir -p /var/chef/cookbooks
+sudo chown ubuntu:ubuntu /var/chef/cookbooks
+cd /var/chef/cookbooks
+git init
+echo "This is a cookbooks directory" > readme.txt
+git add *
+git commit -m "init master"
+
+Download "nginx" cookbook and place it in /var/chef/cookbooks directory with dependencies:
+
+bc. knife cookbook site install nginx
+
+Upload cookbooks to the Chef Server
+
+bc. knife cookbook upload ohai
+knife cookbook upload build-essential
+knife cookbook upload yum
+knife cookbook upload bluepill
+knife cookbook upload runit
+knife cookbook upload nginx
+
+List active nodes
+
+bc. knife node list
+
+Select front node and apply recipe for it
+
+bc. knife node run_list add front_node 'nginx::default'
+
+Show the node to ensure that the run_list contains the recipe
+
+bc. knife node show front_node
+
+
