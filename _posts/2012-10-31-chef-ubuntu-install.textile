@@ -1,0 +1,92 @@
+---
+layout: post
+title: How to install Chef Server 0.10 on Ubuntu 12.4
+---
+
+h1. {{ page.title }}
+
+p(meta). 31 Oct 2012 - Moscow
+
+This is an example of quick installation Chef Server 0.10 on Ubuntu 12.4
+
+Chef Server is an opensource configuration management tool written by OpsCode.
+
+**1. Select Ubuntu Machines**
+
+We need two ubuntu machines. The first machine will be used for Chef Server host (Server), the second one is for Chef Client host (Client).
+
+**2. Both Client and Server preparation**
+
+All steps are doing under root permissions, so we need to switch user to root.
+
+bc. sudo -i
+
+At first we need to add OpsCode sources to the apt-get utility.
+
+bc. echo "deb http://apt.opscode.com/ precise-0.10 main" | sudo tee /etc/apt/sources.list.d/opscode.list
+
+In second step we need to add OpsCode keys
+
+bc. mkdir -p /etc/apt/trusted.gpg.d
+gpg --keyserver keys.gnupg.net --recv-keys 83EF826A
+gpg --export packages@opscode.com | sudo tee /etc/apt/trusted.gpg.d/opscode-keyring.gpg > /dev/null
+
+We need to update packages list.
+
+bc. apt-get update
+
+Additionally install keyring utility to keep OpsCode key up to date.
+
+bc. apt-get install opscode-keyring
+
+Run upgrade to ensure that your system is up to date
+
+bc. apt-get upgrade
+
+Install Ruby if needed
+
+bc. apt-get install ruby1.8 rubygems
+
+
+**2. Only Server preparation**
+
+On the server machine we need to install Chef Server packages.
+
+bc. apt-get install chef chef-server
+
+Enter URL like this: http://chef.example-server.com:4000
+Enter RabbitMQ password and WebUI admin password.
+
+Create directory for user "ubuntu" (Cloud Version of the Ubuntu) and copy certificates
+
+bc. mkdir -p /home/ubuntu/.chef
+cp /etc/chef/validation.pem /etc/chef/webui.pem /home/ubuntu/.chef
+chown -R ubuntu:ubuntu /home/ubuntu/.chef
+
+Switch user 
+
+bc. su - ubuntu
+
+Configure knife
+
+bc. knife configure -i
+
+Fill the fields:
+Please enter the chef server URL:  http://chef.example-server.com:4000
+Please enter the location of the existing admin client's private key: [/etc/chef/webui.pem] .chef/webui.pem
+Please enter the location of the validation key: [/etc/chef/validation.pem] .chef/validation.pem
+
+You will get the message "Configuration file written to /home/ubuntu/.chef/knife.rb"
+
+
+**3. Only Client preparation**
+
+Install chef-client on Ubuntu machine:
+
+bc. apt-get install chef
+
+Copy validation.pem to /etc/chef/validation.pem
+
+Run the client:
+
+bc. chef-client
