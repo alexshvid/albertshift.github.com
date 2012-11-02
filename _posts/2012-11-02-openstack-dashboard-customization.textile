@@ -81,7 +81,6 @@ Insert this class:
 
 bc.. 
 class ForwardedSSL(object):
-
     def process_request(self, request):
         if 'HTTP_X_FORWARDED_SSL' in request.META:
             request.is_secure = lambda: request.META['HTTP_X_FORWARDED_SSL'] == 'on'
