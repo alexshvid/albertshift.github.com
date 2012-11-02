@@ -9,4 +9,116 @@ p(meta). 01 Nov 2012 - Moscow
 
 This is an example how to customize Nginx by Chef.
 
+Nginx is the reverse proxy server, that I usually use as load balancer in my solutions. Now I have requirement how to simplify the configuration of the Nginx and to support it by some remote service.
+
+The first step is to manage web sites by Chef. We will create DataBag that will contains all information about sites and where to redirect requests from Nginx.
+
+**1. Data Bag Creation**
+
+Assume that we have Nginx installed in our network and some machines with internal IP addresses that serves requests. We want to support simple list of the servers and addresses where to redirect HTTP requests.
+
+Let's create simple data bag "fronta.json":/files/2012-11-01/data_bags/fronta.json
+
+bc.. 
+{
+  "id": "fronta",
+  "forwards": [
+    {
+      "site": "site1",
+      "hostnames": "site1-example.com www.site1-example.com www2.site1-example.com",
+      "url": "http://192.168.1.123:8080/",
+      "enabled": "true"
+    },
+    {
+      "site": "site2",
+      "hostnames": "site2-example.com www.site2-example.com",
+      "url": "http://192.168.1.122:8080/",
+      "enabled": "true"
+    }    
+  ],
+  "ssl_forwards": [
+    {
+      "alias": "ssl-site1",
+      "url": "http://192.168.123:8443/ssl-site1/"
+    },
+    {
+      "alias": "ssl-site2",
+      "url": "http://192.168.122:8443/ssl-site2/"
+    }
+  ]
+}
+
+p. In this Data Bag we are having two sections: forwards and ssl_forwards. The first one is used for simple HTTP forwards for internal machines, the second one for SSL.
+
+When HTTP request comes to port 80 with server name "site1-example.com" then Nginx forwards request to http://192.168.1.123:8080/ in our internal network.
+
+When HTTPS request comes to port 443 like https://out-nginx-machine.com/ssl-site1/ then Nginx forwards it to http://192.168.123:8443/ssl-site1/
+
+We need to upload data bag to Chef Server by command:
+
+bc. knife data bag from file fronta fronta.json
+
+You will see message:
+
+bc. Updated data_bag_item[fronta::fronta]
+
+**2. Role Creation**
+
+Crete the role "fronta.rb":/files/2012-11-01/roles/fronta.rb and upload this role to Chef Server:
+
+bc. knife role from file fronta.rb
+
+You will see message:
+
+bc. Updated Role fronta!
+
+Assign role to the node:
+
+bc. knife node run_list add front_node "role[fronta]"
+
+**3. Cookbook modification**
+
+In the previous "article":/2012/10/31/chef-nginx-install.html we successfully installed Nginx by Chef.
+And now we are going to modify cookbook nginx to add nginx::fronta recipe.
+
+Create the recipe "nginx/recipes/fronta.rb":/files/2012-11-01/cookbook/fronta.rb
+
+Uncomment this block in order to automate ssl.key installation, place your ssl.key file to the "nginx/files/default/ssl/ssl.key" in the cookbook.
+
+In other case, place manually ssl.key to /etc/nginx/ssl.key on the front_node.
+
+bc.. 
+
+#cookbook_file "#{node['nginx']['dir']}/ssl.key" do
+#  source "ssl/ssl.key"
+#  owner "root"
+#  group "root"
+#  mode "0600"
+#end
+
+p. 
+
+Place you ssl.crt file to the "nginx/files/default/ssl/ssl.crt", this file could be chained if you have intermediate certificate.
+
+Create template file "nginx/templates/default/forward-site.erb":/files/2012-11-01/cookbook/forward-site.erb
+Create SSL template file "nginx/templates/default/ssl-site.erb":/files/2012-11-01/cookbook/ssl-site.erb
+
+Upload cookbook to the Chef Server
+
+bc. knife cookbook upload nginx
+
+**4. Operations**
+
+Now each time when you have new site in nginx, you need only to modify fronta.json file and to upload data bag
+
+bc. knife data bag from file fronta fronta.json
+
+You could manage data bags from Chef Server and through API.
+
+Chef-client automatically refreshed settings from Chef Server, if you want to speed up this process then go to the front_node and run:
+
+bc. sudo -i
+chef-client
+
+Done.
 

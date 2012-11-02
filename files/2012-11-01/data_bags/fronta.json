@@ -1,0 +1,27 @@
+{
+  "id": "fronta",
+  "forwards": [
+    {
+      "site": "site1",
+      "hostnames": "site1-example.com www.site1-example.com www2.site1-example.com",
+      "url": "http://192.168.1.123:8080/",
+      "enabled": "true"
+    },
+    {
+      "site": "site2",
+      "hostnames": "site2-example.com www.site2-example.com",
+      "url": "http://192.168.1.122:8080/",
+      "enabled": "true"
+    }
+  ],
+  "ssl_forwards": [
+    {
+      "alias": "ssl-site1",
+      "url": "http://192.168.123:8443/ssl-site1/"
+    },
+    {
+      "alias": "ssl-site2",
+      "url": "http://192.168.122:8443/ssl-site2/"
+    }
+  ]
+}
