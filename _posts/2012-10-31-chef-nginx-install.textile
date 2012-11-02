@@ -25,6 +25,14 @@ Download "nginx" cookbook and place it in /var/chef/cookbooks directory with dep
 
 bc. knife cookbook site install nginx
 
+Fix types_hash_max_size:
+
+bc. nano /var/chef/cookbooks/nginx/templates/default/nginx.conf.erb
+
+Put in bottom of the http section the text:
+
+bc. types_hash_max_size 8192;
+
 Upload cookbooks to the Chef Server
 
 bc. knife cookbook upload ohai

@@ -1,0 +1,129 @@
+---
+layout: post
+title: OpenStack Dashboard Customization
+---
+
+h1. {{ page.title }}
+
+p(meta). 02 Nov 2012 - Moscow
+
+I have installed OpenStack on my PC and I want to make some customizations. The first thing that I found is that Dashboard has a small size of the screen for the VPN. I found this solution to increase pixels for VPN:
+
+**1. Increasing VPN windows size**
+
+To increase window size we need to change html file
+
+bc. cd /usr/share/pyshared/horizon/dashboards/nova/templates/nova/instances_and_volumes/instances/
+nano _detail_vnc.html
+
+In this file we need to find "iframe" and change width and height.
+
+bc. <iframe src="{{ vnc_url }}" width="740" height="450"></iframe>
+
+Done.
+
+**2. Change server alias**
+
+By default my Dashboard is accessible from http://localhost. For some reasons want to have my Dashboard on http://localhost/dashboard, here is example how to achieve it.
+
+bc. nano /etc/apache2/conf.d/openstack-dashboard.conf
+
+We need to change line with WSGIScriptAlias to
+
+bc. WSGIScriptAlias /dashboard /usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi
+Alias /dashboard/static /usr/share/openstack-dashboard/openstack_dashboard/static/
+
+Edit dashboard settings:
+
+bc. nano /usr/share/openstack-dashboard/openstack_dashboard/settings.py
+
+Change STATIC_URL to:
+
+bc. STATIC_URL = '/dashboard/static/'
+
+And then reload Apache2
+
+bc. /etc/init.d/apache2 reload
+
+**3. SSL support**
+
+I have an architecture with Nginx->Dashboard with SSL communication.
+In this case I need to enable SSL support for Dashboard, otherwise, all redirects from Dashboard will go to http proto,
+instead of htttps.
+ 
+The first thing that we need to do is to forward SSL proto from Nginx.
+I have added two proxy headers:
+
+bc. proxy_set_header   X-Forwarded-Protocol https;
+proxy_set_header   X-Forwarded-Ssl  on; 
+
+The second thing we need to tell to Django how to process requests.
+We need to check version fo the Djando:
+
+bc. python
+import django
+django.VERSION
+quit()
+
+I the version is >= 1.4 then we need to modify setting.py file
+
+bc. nano /usr/share/openstack-dashboard/openstack_dashboard/settings.py
+
+Insert this line, that will tell to Django about proto:
+
+bc. SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
+
+In case if we are having old version of the Djando, we need to modify middleware in Django application.
+
+bc. nano /usr/share/openstack-dashboard/openstack_dashboard/middleware.py
+
+Insert this class:
+
+bc.. 
+class ForwardedSSL(object):
+
+    def process_request(self, request):
+        if 'HTTP_X_FORWARDED_SSL' in request.META:
+            request.is_secure = lambda: request.META['HTTP_X_FORWARDED_SSL'] == 'on'
+
+p. ForwardedSSL Middleware responsible for checking "X-Forwarded-Ssl" header that we set already in Nginx. 
+So, for the Dashboard that accessible for http it is nothing changed, for https it will have is_secure = True.
+
+Additionally we need to enable this middleware in settings.py:
+
+bc. nano /usr/share/openstack-dashboard/openstack_dashboard/settings.py 
+Insert new middleware here: 
+
+bc.. 
+MIDDLEWARE_CLASSES = (
+    'openstack_dashboard.middleware.ForwardedSSL',
+    ...
+
+p. Done
+
+
+**4. Logging support**
+
+I received the message:
+
+bc. [error] No handlers could be found for logger "openstack_dashboard"
+
+I think the solution is
+
+bc. nano nano /etc/openstack-dashboard/local_settings.py 
+
+Insert this text to loggers:
+
+bc.. 
+'openstack_dashboard': {
+  'handlers': ['console'],
+  'propagate': False,
+}
+
+p. Restart apache2
+
+bc. /etc/init.d/apache2 reload
+
+Done.
+
+

@@ -1,0 +1,12 @@
+---
+layout: post
+title: Nginx customization by Chef
+---
+
+h1. {{ page.title }}
+
+p(meta). 01 Nov 2012 - Moscow
+
+This is an example how to customize Nginx by Chef.
+
+
