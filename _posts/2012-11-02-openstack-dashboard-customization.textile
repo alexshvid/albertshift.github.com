@@ -45,6 +45,8 @@ And then reload Apache2
 
 bc. /etc/init.d/apache2 reload
 
+Done.
+
 **3. SSL support**
 
 I have an architecture with Nginx->Dashboard with SSL communication.
@@ -58,7 +60,7 @@ bc. proxy_set_header   X-Forwarded-Protocol https;
 proxy_set_header   X-Forwarded-Ssl  on; 
 
 The second thing we need to tell to Django how to process requests.
-We need to check version fo the Djando:
+We need to check version of the Django:
 
 bc. python
 import django
@@ -86,12 +88,14 @@ class ForwardedSSL(object):
             request.is_secure = lambda: request.META['HTTP_X_FORWARDED_SSL'] == 'on'
 
 p. ForwardedSSL Middleware responsible for checking "X-Forwarded-Ssl" header that we set already in Nginx. 
-So, for the Dashboard that accessible for http it is nothing changed, for https it will have is_secure = True.
+So, for http requests it is nothing changed, but for https requests it will have is_secure = True.
 
 Additionally we need to enable this middleware in settings.py:
 
 bc. nano /usr/share/openstack-dashboard/openstack_dashboard/settings.py 
+
 Insert new middleware here: 
+
 
 bc.. 
 MIDDLEWARE_CLASSES = (
@@ -109,7 +113,7 @@ bc. [error] No handlers could be found for logger "openstack_dashboard"
 
 I think the solution is
 
-bc. nano nano /etc/openstack-dashboard/local_settings.py 
+bc. nano /etc/openstack-dashboard/local_settings.py 
 
 Insert this text to loggers:
 
