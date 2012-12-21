@@ -54,4 +54,19 @@ Show the node to ensure that the run_list contains the recipe
 
 bc. knife node show front_node
 
+**Chef WebUI customization**
 
+/usr/share/chef-server-webui/config/rack.rb
+
+bc.. 
+
+use Rack::ContentLength
+if prefix = ::Merb::Config[:path_prefix]
+    use Merb::Rack::PathPrefix, prefix
+end
+use Merb::Rack::Static, Merb.dir_for(:public)
+run Merb::Rack::Application.new
+
+p. add to /usr/share/chef-server-webui/config/environments/production.rb:
+
+c[:path_prefix]        = '/webui'
