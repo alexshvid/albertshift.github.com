@@ -1,28 +1,28 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.coherence</groupId>
-  <artifactId>coherence-pom</artifactId>
-  <name>Coherence (${coherence.version})</name>
+  <groupId>GROUP_ID</groupId>
+  <artifactId>ARTIFACT_ID-pom</artifactId>
+  <name>ARTIFACT_ID (${jar.version})</name>
   <packaging>pom</packaging>
-  <version>${coherence.version}</version>
+  <version>${jar.version}</version>
   <build>
     <plugins>
       <plugin>
         <artifactId>maven-install-plugin</artifactId>
         <executions>
           <execution>
-            <id>install-coherence</id>
+            <id>install-jar</id>
             <phase>install</phase>
             <goals>
               <goal>install-file</goal>
             </goals>
             <configuration>
-              <file>coherence-${coherence.version}.jar</file>
-              <groupId>com.coherence</groupId>
-              <artifactId>coherence</artifactId>
+              <file>ARTIFACT_ID-${jar.version}.jar</file>
+              <groupId>GROUP_ID</groupId>
+              <artifactId>ARTIFACT_ID</artifactId>
               <packaging>jar</packaging>
-              <version>${coherence.version}</version>
+              <version>${jar.version}</version>
               <generatePom>true</generatePom>
               <createChecksum>true</createChecksum>
             </configuration>
@@ -32,6 +32,13 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     </plugins>
   </build>
   <properties>
-    <coherence.version>3.7</coherence.version>
+    <jar.version>VERSION</jar.version>
   </properties>
 </project>
+
+
+<dependency>
+    <groupId>GROUP_ID</groupId>
+    <artifactId>ARTIFACT_ID</artifactId>
+    <version>VERSION</version>
+</dependency>

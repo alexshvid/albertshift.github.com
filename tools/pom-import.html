@@ -27,8 +27,46 @@
     <a class="extra" href="/author.html">Author</a>
   </div>
 
-  <code>A piece of computer code</code>
+  <h4>pom.xml import library code generation tool</h4>
+<br/>
+groupId:
+<input id="groupId" type="text" value="com.example" />
+<br/>
+artifactId:
+<input id="artifactId" type="text" value="mylib" />
+<br/>
+version:
+<input id="version" type="text" value="1.0" />
+<br/>
+<input type="button" value="generate" onclick="generate()" />
+<br/>
+<br/>
 
+<code id="codeId"></code>
+
+<script type="text/javascript">
+
+function generate() {
+
+	var groupId = $('#groupId').val();
+	var artifactId = $('#artifactId').val();
+	var version = $('#version').val();
+	
+	$.get("/tools/pom-import.template", function(data) {
+	  $("#codeId").text(data.replace(/\n/g, 'LINE_END'));
+	  var html = $("#codeId").html();
+	  
+	  html = html.replace(/LINE_END/g, '<br/>');
+	  html = html.replace(/GROUP_ID/g, groupId);
+	  html = html.replace(/ARTIFACT_ID/g, artifactId);
+	  html = html.replace(/VERSION/g, version);
+	  
+	  $("#codeId").html(html);
+	});
+
+}
+
+</script>
 
 
 
