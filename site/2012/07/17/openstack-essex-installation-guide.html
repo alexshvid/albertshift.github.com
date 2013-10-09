@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <meta http-equiv="cache-control" content="no-cache">
+   <meta property="fb:admins" content="503582880"/>
+   <meta property="fb:app_id" content="188928671231690"/>
+   <title>OpenStack Essex Installation Guide</title>
+   <meta name="author" content="Alex Shvid" />
+
+   <!-- syntax highlighting CSS -->
+   <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+
+   <!-- Homepage CSS -->
+   <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+   <script src="/js/main.js"></script>
+
+</head>
+<body>
+
+<div class="site">
+  <div class="title" id="menuId">
+    <a class="extra" href="/">Blog</a>
+    <a class="extra" href="/tools.html">Tools</a>
+    <a class="extra" href="/author.html">Author</a>
+  </div>
+
+  <div id="post">
+<h1>OpenStack Essex Installation Guide</h1>
+<p class="meta">11 July 2012 &#8211; Moscow</p>
+<p>This is OpenStack Install guide on VMWare Workstation Under Windows</p>
+<p><b>1. Download VMware Workstation</b></p>
+<p>I hope you are having 64 bit operation system, in this case select 64 bit VMWare Workstation</p>
+<p><b>2. Create Virtual Machine</b></p>
+<p>Create new virtual machine with</p>
+<ul>
+	<li>4 VCPUs</li>
+	<li>3Gb memory</li>
+	<li>20Gb disk space</li>
+	<li>eth0 <span class="caps">NAT</span> Network</li>
+	<li>eth1 Host-Only Network with Vmnet1 192.168.230.0 mask 255.255.255.0, no <span class="caps">DHCP</span></li>
+	<li>eth2 Host-Only Network with Vmnet2 192.168.231.0 mask 255.255.255.0, no <span class="caps">DHCP</span></li>
+</ul>
+<p><b>3. Install Ubuntu Server 64-bit</b></p>
+<p>Select Ubuntu Server 12.0 <span class="caps">ISO</span> and install operation system<br />
+use openstack-essex name for OS and username/password</p>
+<p>Change to root:</p>
+<pre><code>sudo bash</code></pre>
+<p>Change operation system name:</p>
+<pre><code>nano /etc/hostname</code></pre>
+<p>Enter <b>openstack-essex</b> and save</p>
+<p>Change hosts file:</p>
+<pre><code>nano /etc/hosts</code></pre>
+<p>Enter 192.168.230.1 openstack-essex</p>
+<p>Change network interfaces:</p>
+<pre><code>nano /etc/network/interfaces</code></pre>
+<p>Insert text</p>
+<pre># The loopback network interface
+auto lo
+iface lo inet loopback</pre>
+<pre>#Primary interface NAT interface
+auto eth0
+iface eth0 inet dhcp</pre>
+<pre>#public interface – The API village
+auto eth1
+iface eth1 inet static
+address 192.168.230.1
+netmask 255.255.255.0
+network 192.168.230.0
+broadcast 192.168.230.255</pre>
+<pre>#Private Vlan Land of Compute Nodes
+auto eth2
+iface eth2 inet manual
+up ifconfig eth2 up</pre>
+<p>Restart the operation system</p>
+<pre><code>shutdown -r now</code></pre>
+<p>Check from Windows that VM is accessible by eth1</p>
+<pre><code>cmd
+ping 192.168.230.1</code></pre>
+<p>In the Virtual Machine console check <span class="caps">NAT</span> interface</p>
+<pre><code>ping google.com</code></pre>
+<p><b>4. Update Ubuntu Openstack-Essex</b></p>
+<p>Update Ubuntu and install <span class="caps">SSH</span></p>
+<pre><code>sudo bash
+apt-get update
+apt-get dist-upgrade
+apt-get install ssh ntp</code></pre>
+<p>Connect through Putty by eth0 to the Virtual Machine<br />
+Use <span class="caps">UTF</span>-8 encoding</p>
+<p>Change <span class="caps">NTP</span> settings:</p>
+<pre><code>nano /etc/ntp.conf</code></pre>
+<p>Insert on top:</p>
+<pre>server ntp.ubuntu.com iburst
+server 127.127.1.0
+fudge 127.127.1.0 stratum 10</pre>
+<p>Restart <span class="caps">NTP</span> service</p>
+<pre><code>service ntp restart
+ntptime</code></pre>
+<p><b>5.Install packages</b></p>
+<pre><code>apt-get install tgt
+apt-get install open-iscsi open-iscsi-utils
+apt-get install bridge-utils</code></pre>
+<p>Retart networking</p>
+<pre><code>/etc/init.d/networking restart</code></pre>
+<p>Install more packages</p>
+<pre><code>apt-get install rabbitmq-server memcached python-memcache
+apt-get install kvm libvirt-bin
+apt-get install -y mysql-server python-mysqldb</code></pre>
+<p>Create Databases:</p>
+<pre><code>mysql -u root -p</code></pre>
+<pre><code>CREATE DATABASE keystone;
+GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY 'openstack'; 
+CREATE DATABASE nova;
+GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' IDENTIFIED BY 'openstack';
+CREATE DATABASE glance;
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY 'openstack';
+FLUSH PRIVILEGES;
+QUIT;</code></pre>
+<p>Check connection to database:</p>
+<pre><code>mysql -u nova -p nova
+mysql -u glance -p glance</code></pre>
+<p>Enter: &#8216;openstack&#8217; password</p>
+<p>Change bing address of the mysql</p>
+<pre><code>nano /etc/mysql/my.cnf</code></pre>
+<pre>/*from
+bind-address = 127.0.0.1
+/*to
+bind-address = 0.0.0.0</pre>
+<p>Restart mysql service</p>
+<pre><code>service mysql restart</code></pre>
+<p><b>6.Install Keystone</b></p>
+<p>Install keystone packages</p>
+<pre><code>apt-get install keystone python-keystone python-keystoneclient</code></pre>
+<p>Change keystone settings</p>
+<pre><code>nano /etc/keystone/keystone.conf</code></pre>
+<pre>[DEFAULT]
+admin_token = TOKEN123</pre>
+<pre>[sql]
+connection = mysql://keystone:openstack@localhost/keystone
+min_pool_size = 5
+max_pool_size = 10
+pool_timeout = 200
+idle_timeout = 200</pre>
+<p>Restart Keystone service</p>
+<pre><code>service keystone restart
+keystone-manage db_sync</code></pre>
+<p>Download keystone initialization script</p>
+<pre><code>wget https://github.com/downloads/nerdalert/Openstack-Essex-install-config-files/keystone.sh
+chmod +x keystone.sh</code></pre>
+<p>Change token in script</p>
+<pre><code>nano keystone.sh </code></pre>
+<p>Change export SERVICE_TOKEN=”openstack” to export SERVICE_TOKEN=”TOKEN123”</p>
+<p>Run keystone script</p>
+<pre><code>./keystone.sh
+echo $?</code></pre>
+<p>Should return 0 if success</p>
+<p>Restart Keystone service</p>
+<pre><code>service keystone restart</code></pre>
+<p><b>7.Install Glance</b></p>
+<p>Install packages</p>
+<pre><code>sudo bash
+apt-get install glance glance-api glance-client glance-common glance-registry python-glance</code></pre>
+<p>Change ~/.bashrc</p>
+<pre><code>nano ~/.bashrc</code></pre>
+<p>Insert text:</p>
+<pre>export SERVICE_TOKEN=TOKEN123
+export OS_TENANT_NAME=admin
+export OS_USERNAME=admin
+export OS_PASSWORD=openstack
+export OS_AUTH_URL="http://localhost:5000/v2.0/"
+export SERVICE_ENDPOINT=http://localhost:35357/v2.0</pre>
+<p>Restart bash and check exports</p>
+<pre><code>bash
+export</code></pre>
+<p>Change ini files for Glance</p>
+<pre><code>nano /etc/glance/glance-registry-paste.ini
+nano /etc/glance/glance-api-paste.ini</code></pre>
+<p>Chage properties in bottom</p>
+<pre>admin_tenant_name = admin
+admin_user = admin
+admin_password = openstack</pre>
+<p>Change mysql connection string for Glance</p>
+<pre><code>nano /etc/glance/glance-registry.conf</code></pre>
+<pre>sql_connection = mysql://glance:openstack@localhost/glance</pre>
+<p>Add in bottom keystone reference</p>
+<pre><code>nano /etc/glance/glance-registry.conf
+nano /etc/glance/glance-api.conf</code></pre>
+<pre>[paste_deploy]
+flavor = keystone</pre>
+<p>Restart Glance</p>
+<pre><code>service glance-api restart
+service glance-registry restart
+glance-manage version_control 0
+glance-manage db_sync
+service glance-api restart
+service glance-registry restart</code></pre>
+<pre>/*Upload Images
+/* 11.10 image
+wget http://uec-images.ubuntu.com/releases/11.10/release/ubuntu-11.10-server-cloudimg-amd64-disk1.img
+/* 12.04 image
+wget https://cloud-images.ubuntu.com/precise/current/precise-server-cloudimg-amd64-disk1.img</pre>
+<p>Download Ubuntu images</p>
+<pre><code>glance index</code></pre>
+</div>
+
+<br clear="all" />
+<div class="fb-comments" data-href="http://alex.shvid.com" data-num-posts="5" data-width="1000"></div>
+
+<div id="related">
+  <h2>Related Posts</h2>
+  <ul class="posts">
+    
+      <li><span>02 Nov 2012</span> &raquo; <a href="/2012/11/02/openstack-dashboard-customization.html">OpenStack Dashboard Customization</a></li>
+    
+      <li><span>01 Nov 2012</span> &raquo; <a href="/2012/11/01/chef-nginx-customization.html">Nginx customization by Chef</a></li>
+    
+      <li><span>31 Oct 2012</span> &raquo; <a href="/2012/10/31/chef-ubuntu-install.html">How to install Chef Server 0.10 on Ubuntu 12.4</a></li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="footer">
+    <div class="blog">
+      <p>
+          This blog is an <a href="https://github.com/shvid/shvid.github.com">opensource</a> project.
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        Alex Shvid
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://www.linkedin.com/in/shvid">linkedin.com/in/shvid</a><br />
+        <a href="https://twitter.com/#!/AlexShvid">twitter.com/#!/AlexShvid</a><br />
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://code.shvid.com">code.shvid.com</a><br />
+        <a href="https://github.com/shvid">github.com/shvid</a><br />
+      </p>
+    </div>    
+    <div class="contact">
+      <p>
+        <a href="https://passport.webmoney.ru/asp/certview.asp?wmid=815648224379&viewall=1">WMID:815648224379</a><br />
+      </p>
+    </div>    
+  </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(selectMenu());
+</script>
+
+<script type="text/javascript">
+  (function() {
+    var _sw = document.createElement('script'); _sw.type = 'text/javascript'; _sw.async = true;
+    _sw.src = 'https://suggest.io/js';
+    var _sh = document.getElementsByTagName('head')[0]; _sh.appendChild(_sw);
+  })();
+</script>
+
+</body>
+</html>

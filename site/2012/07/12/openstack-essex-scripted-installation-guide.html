@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <meta http-equiv="cache-control" content="no-cache">
+   <meta property="fb:admins" content="503582880"/>
+   <meta property="fb:app_id" content="188928671231690"/>
+   <title>OpenStack Essex Scripted Installation Guide</title>
+   <meta name="author" content="Alex Shvid" />
+
+   <!-- syntax highlighting CSS -->
+   <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+
+   <!-- Homepage CSS -->
+   <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+   <script src="/js/main.js"></script>
+
+</head>
+<body>
+
+<div class="site">
+  <div class="title" id="menuId">
+    <a class="extra" href="/">Blog</a>
+    <a class="extra" href="/tools.html">Tools</a>
+    <a class="extra" href="/author.html">Author</a>
+  </div>
+
+  <div id="post">
+<h1>OpenStack Essex Scripted Installation Guide</h1>
+<p class="meta">11 July 2012 &#8211; Moscow</p>
+<p>This is OpenStack Install guide on VirtualBox Under Windows</p>
+<p><b>1. Download VirtualBox</b></p>
+<p>The best solution is to download the latest version of the VirtualBox from this <a href="https://www.virtualbox.org/wiki/Downloads">page</a></p>
+<p>I hope you are having 64 bit operation system, in this case select 64 bit VirtualBox</p>
+<p><b>2. Create additional interfaces</b></p>
+<p>Add two interfaces:</p>
+<ul>
+	<li>172.16.0.254 with mask 255.255.0.0</li>
+	<li>10.0.0.1 with mask 255.0.0.0</li>
+</ul>
+<p><b>3. Create virtual operation system</b></p>
+<p>Create new instance with name OpenStack-Essex<br />
+Add interfaces:</p>
+<ul>
+	<li>Virtual Host Only Adapter #2 &#8211; eth0</li>
+	<li>Virtual Host Only Adapter #3 &#8211; eth1</li>
+	<li>Nat &#8211; eth2</li>
+</ul>
+<p>Setup instance:</p>
+<ul>
+	<li>3Gb operational memory</li>
+	<li>15Gb disk size</li>
+	<li>4 <span class="caps">VCPU</span></li>
+</ul>
+<p>Run instance and select ubuntu-12.4-server-amd64.iso</p>
+<p><b>4. Install Ubuntu Server 64-bit</b></p>
+<p>Select in installation steps</p>
+<ul>
+	<li>select eth2 as primary interface</li>
+	<li>entire disk</li>
+	<li>no proxy</li>
+	<li>no automatic updates</li>
+	<li>OpenSSH &#8211; enabled</li>
+	<li>install the <span class="caps">GRUB</span> boot loader &#8211; yes</li>
+</ul>
+<p><b>5. Update Ubuntu Server 64-bit</b></p>
+<p>Login to the ubuntu and type:</p>
+<pre><code>sudo bash
+apt-get update
+apt-get dist-upgrade</code></pre>
+<p><b>6. Setup networks</b></p>
+<p>Change interfaces file</p>
+<pre><code>sudo bash
+nano /etc/network/interfaces</code></pre>
+<p>Insert text</p>
+<pre># The loopback network interface
+auto lo
+iface lo inet loopback</pre>
+<pre>#Primary interface NAT interface
+auto eth0
+iface eth0 inet dhcp</pre>
+<pre>#public interface – The API village
+auto eth1
+iface eth1 inet static
+address 172.16.0.1
+netmask 255.255.0.0
+network 172.16.0.0
+broadcast 172.16.255.255</pre>
+<pre>#Private Vlan Land of Compute Nodes
+auto eth2
+iface eth2 inet manual
+up ifconfig eth2 up</pre>
+<p>Restart the networking service</p>
+<pre><code>/etc/init.d/networking restart</code></pre>
+<p>After restart you could connect to the virtual machine by <a href="http://the.earth.li/~sgtatham/putty/latest/x86/putty.exe">putty</a>,<br />
+use the 172.16.0.1 address and 22 port</p>
+<p><b>7. Checkout OpenStack Essex Installer</b></p>
+<p>Install Git and checkout OpenStackInstaller</p>
+<pre><code>sudo bash
+apt-get install git-core
+exit
+git clone https://github.com/uksysadmin/OpenStackInstaller.git
+cd OpenStackInstaller
+git checkout essex</code></pre>
+<p>change file OpenStackInstaller/OSinstall.sh</p>
+<p>from</p>
+<pre> 
+DEFAULT_PUBLIC_INTERFACE=eth1
+DEFAULT_PRIVATE_INTERFACE=eth0</pre>
+<p>to</p>
+<pre>
+DEFAULT_PUBLIC_INTERFACE=eth0
+DEFAULT_PRIVATE_INTERFACE=eth1</pre>
+<p>And other default settings if need</p>
+<p><b>8. Install OpenStack Essex</b></p>
+<p>Install OpenStack Essex</p>
+<pre><code>sudo bash
+cd OpenStackInstaller
+./OSinstall.sh -F 172.16.1.0/24 -f 10.1.0.0/16 -s 512 -t demo -v qemu</code></pre>
+<p>Answer &#8216;Y&#8217; and wait 5-10 of minutes</p>
+<p>Upload first image</p>
+<pre><code>./upload_ubuntu.sh -a admin -p openstack -t demo -C 172.16.0.1</code></pre>
+<p>Create key_pair<br />
+Add open ports on security group &#8216;default&#8217;</p>
+<pre>
+TCP 22 22 0.0.0.0/0 (CIDR)
+ICMP -1 -1 0.0.0.0/0 (CIDR)
+TCP 8080 8080 0.0.0.0/0 (CIDR)
+TCP 80 80 0.0.0.0/0 (CIDR)</pre>
+<pre>Open page http://172.16.0.1
+Login: demo
+Password: openstack</pre>
+<p>Enjoy</p>
+<p><b>9. Install OpenStack Volume</b></p>
+<p>Install nova-volume</p>
+<pre><code>sudo bash
+apt-get install nova-volume open-iscsi iscsitarget iscsitarget-dkms</code></pre>
+<p>Enable iscsitarget</p>
+<pre><code>sed -i 's/false/true/g' /etc/default/iscsitarget
+service iscsitarget start
+service open-iscsi start</code></pre>
+<p>Add second drive in VirtualBox to your VM</p>
+<p>Manage hard drives, you need couple of them, ensure that you are having two disks</p>
+<pre><code>fdisk -l 2&gt;/dev/null | grep '/dev/sd[a-b]'</code></pre>
+<p>Create physical volume on second drive</p>
+<pre><code>pvcreate /dev/sdb</code></pre>
+<p>Create Nova Volumes group on second drive</p>
+<pre><code>vgcreate nova-volumes /dev/sdb</code></pre>
+<p>Restart nova-volume</p>
+<pre><code>service nova-volume start
+nova-manage service list</code></pre>
+</div>
+
+<br clear="all" />
+<div class="fb-comments" data-href="http://alex.shvid.com" data-num-posts="5" data-width="1000"></div>
+
+<div id="related">
+  <h2>Related Posts</h2>
+  <ul class="posts">
+    
+      <li><span>02 Nov 2012</span> &raquo; <a href="/2012/11/02/openstack-dashboard-customization.html">OpenStack Dashboard Customization</a></li>
+    
+      <li><span>01 Nov 2012</span> &raquo; <a href="/2012/11/01/chef-nginx-customization.html">Nginx customization by Chef</a></li>
+    
+      <li><span>31 Oct 2012</span> &raquo; <a href="/2012/10/31/chef-ubuntu-install.html">How to install Chef Server 0.10 on Ubuntu 12.4</a></li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="footer">
+    <div class="blog">
+      <p>
+          This blog is an <a href="https://github.com/shvid/shvid.github.com">opensource</a> project.
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        Alex Shvid
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://www.linkedin.com/in/shvid">linkedin.com/in/shvid</a><br />
+        <a href="https://twitter.com/#!/AlexShvid">twitter.com/#!/AlexShvid</a><br />
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://code.shvid.com">code.shvid.com</a><br />
+        <a href="https://github.com/shvid">github.com/shvid</a><br />
+      </p>
+    </div>    
+    <div class="contact">
+      <p>
+        <a href="https://passport.webmoney.ru/asp/certview.asp?wmid=815648224379&viewall=1">WMID:815648224379</a><br />
+      </p>
+    </div>    
+  </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(selectMenu());
+</script>
+
+<script type="text/javascript">
+  (function() {
+    var _sw = document.createElement('script'); _sw.type = 'text/javascript'; _sw.async = true;
+    _sw.src = 'https://suggest.io/js';
+    var _sh = document.getElementsByTagName('head')[0]; _sh.appendChild(_sw);
+  })();
+</script>
+
+</body>
+</html>

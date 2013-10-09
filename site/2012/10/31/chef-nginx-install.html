@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <meta http-equiv="cache-control" content="no-cache">
+   <meta property="fb:admins" content="503582880"/>
+   <meta property="fb:app_id" content="188928671231690"/>
+   <title>How to install Nginx by Chef</title>
+   <meta name="author" content="Alex Shvid" />
+
+   <!-- syntax highlighting CSS -->
+   <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+
+   <!-- Homepage CSS -->
+   <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+   <script src="/js/main.js"></script>
+
+</head>
+<body>
+
+<div class="site">
+  <div class="title" id="menuId">
+    <a class="extra" href="/">Blog</a>
+    <a class="extra" href="/tools.html">Tools</a>
+    <a class="extra" href="/author.html">Author</a>
+  </div>
+
+  <div id="post">
+<h1>How to install Nginx by Chef</h1>
+<p class="meta">31 Oct 2012 &#8211; Moscow</p>
+<p>This is an example how to install Nginx by Chef. Previously I have written <a href="/2012/10/31/chef-ubuntu-install.html">article</a> how to install Chef on Ubuntu and now we will try to install the first cookbook on this environment.</p>
+<p><b>1. Download cookbook</b></p>
+<p>Create cookbook directory:</p>
+<pre><code>sudo mkdir -p /var/chef/cookbooks
+sudo chown ubuntu:ubuntu /var/chef/cookbooks
+cd /var/chef/cookbooks
+git init
+echo "This is a cookbooks directory" &gt; readme.txt
+git add *
+git commit -m "init master"</code></pre>
+<p>Download &#8220;nginx&#8221; cookbook and place it in /var/chef/cookbooks directory with dependencies:</p>
+<pre><code>knife cookbook site install nginx</code></pre>
+<p>Fix types_hash_max_size:</p>
+<pre><code>nano /var/chef/cookbooks/nginx/templates/default/nginx.conf.erb</code></pre>
+<p>Put in bottom of the http section the text:</p>
+<pre><code>types_hash_max_size 8192;</code></pre>
+<p>Upload cookbooks to the Chef Server</p>
+<pre><code>knife cookbook upload ohai
+knife cookbook upload build-essential
+knife cookbook upload yum
+knife cookbook upload bluepill
+knife cookbook upload runit
+knife cookbook upload nginx</code></pre>
+<p>List active nodes</p>
+<pre><code>knife node list</code></pre>
+<p>Select front node and apply recipe for it</p>
+<pre><code>knife node run_list add front_node 'nginx::default'</code></pre>
+<p>Show the node to ensure that the run_list contains the recipe</p>
+<pre><code>knife node show front_node</code></pre>
+<p><b>Chef WebUI customization</b></p>
+<p>/usr/share/chef-server-webui/config/rack.rb</p>
+<pre>
+
+<code>use Rack::ContentLength
+if prefix = ::Merb::Config[:path_prefix]
+    use Merb::Rack::PathPrefix, prefix
+end
+use Merb::Rack::Static, Merb.dir_for(:public)
+run Merb::Rack::Application.new</code></pre>
+<p>add to /usr/share/chef-server-webui/config/environments/production.rb:</p>
+<p>c[:path_prefix]        = &#8216;/webui&#8217;</p>
+</div>
+
+<br clear="all" />
+<div class="fb-comments" data-href="http://alex.shvid.com" data-num-posts="5" data-width="1000"></div>
+
+<div id="related">
+  <h2>Related Posts</h2>
+  <ul class="posts">
+    
+      <li><span>02 Nov 2012</span> &raquo; <a href="/2012/11/02/openstack-dashboard-customization.html">OpenStack Dashboard Customization</a></li>
+    
+      <li><span>01 Nov 2012</span> &raquo; <a href="/2012/11/01/chef-nginx-customization.html">Nginx customization by Chef</a></li>
+    
+      <li><span>31 Oct 2012</span> &raquo; <a href="/2012/10/31/chef-ubuntu-install.html">How to install Chef Server 0.10 on Ubuntu 12.4</a></li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="footer">
+    <div class="blog">
+      <p>
+          This blog is an <a href="https://github.com/shvid/shvid.github.com">opensource</a> project.
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        Alex Shvid
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://www.linkedin.com/in/shvid">linkedin.com/in/shvid</a><br />
+        <a href="https://twitter.com/#!/AlexShvid">twitter.com/#!/AlexShvid</a><br />
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://code.shvid.com">code.shvid.com</a><br />
+        <a href="https://github.com/shvid">github.com/shvid</a><br />
+      </p>
+    </div>    
+    <div class="contact">
+      <p>
+        <a href="https://passport.webmoney.ru/asp/certview.asp?wmid=815648224379&viewall=1">WMID:815648224379</a><br />
+      </p>
+    </div>    
+  </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(selectMenu());
+</script>
+
+<script type="text/javascript">
+  (function() {
+    var _sw = document.createElement('script'); _sw.type = 'text/javascript'; _sw.async = true;
+    _sw.src = 'https://suggest.io/js';
+    var _sh = document.getElementsByTagName('head')[0]; _sh.appendChild(_sw);
+  })();
+</script>
+
+</body>
+</html>

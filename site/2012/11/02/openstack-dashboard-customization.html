@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <meta http-equiv="cache-control" content="no-cache">
+   <meta property="fb:admins" content="503582880"/>
+   <meta property="fb:app_id" content="188928671231690"/>
+   <title>OpenStack Dashboard Customization</title>
+   <meta name="author" content="Alex Shvid" />
+
+   <!-- syntax highlighting CSS -->
+   <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+
+   <!-- Homepage CSS -->
+   <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+   <script src="/js/main.js"></script>
+
+</head>
+<body>
+
+<div class="site">
+  <div class="title" id="menuId">
+    <a class="extra" href="/">Blog</a>
+    <a class="extra" href="/tools.html">Tools</a>
+    <a class="extra" href="/author.html">Author</a>
+  </div>
+
+  <div id="post">
+<h1>OpenStack Dashboard Customization</h1>
+<p class="meta">02 Nov 2012 &#8211; Moscow</p>
+<p>I have installed OpenStack on my PC and I want to make some customizations. The first thing that I found is that Dashboard has a small size of the screen for the <span class="caps">VPN</span>. I found this solution to increase pixels for <span class="caps">VPN</span>:</p>
+<p><b>1. Increasing <span class="caps">VPN</span> windows size</b></p>
+<p>To increase window size we need to change html file</p>
+<pre><code>cd /usr/share/pyshared/horizon/dashboards/nova/templates/nova/instances_and_volumes/instances/
+nano _detail_vnc.html</code></pre>
+<p>In this file we need to find &#8220;iframe&#8221; and change width and height.</p>
+<pre><code>&lt;iframe src="" width="740" height="450"&gt;&lt;/iframe&gt;</code></pre>
+<p>Done.</p>
+<p><b>2. Change server alias</b></p>
+<p>By default my Dashboard is accessible from http://localhost. For some reasons want to have my Dashboard on http://localhost/dashboard, here is example how to achieve it.</p>
+<pre><code>nano /etc/apache2/conf.d/openstack-dashboard.conf</code></pre>
+<p>We need to change line with WSGIScriptAlias to</p>
+<pre><code>WSGIScriptAlias /dashboard /usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi
+Alias /dashboard/static /usr/share/openstack-dashboard/openstack_dashboard/static/</code></pre>
+<p>Edit dashboard settings:</p>
+<pre><code>nano /usr/share/openstack-dashboard/openstack_dashboard/settings.py</code></pre>
+<p>Change STATIC_URL to:</p>
+<pre><code>STATIC_URL = '/dashboard/static/'</code></pre>
+<p>And then reload Apache2</p>
+<pre><code>/etc/init.d/apache2 reload</code></pre>
+<p>Done.</p>
+<p><b>3. <span class="caps">SSL</span> support</b></p>
+<p>I have an architecture with Nginx&#8594;Dashboard with <span class="caps">SSL</span> communication.<br />
+In this case I need to enable <span class="caps">SSL</span> support for Dashboard, otherwise, all redirects from Dashboard will go to http proto,<br />
+instead of htttps.</p>
+<p>The first thing that we need to do is to forward <span class="caps">SSL</span> proto from Nginx.<br />
+I have added two proxy headers:</p>
+<pre><code>proxy_set_header   X-Forwarded-Protocol https;
+proxy_set_header   X-Forwarded-Ssl  on; </code></pre>
+<p>The second thing we need to tell to Django how to process requests.<br />
+We need to check version of the Django:</p>
+<pre><code>python
+import django
+django.VERSION
+quit()</code></pre>
+<p>I the version is &gt;= 1.4 then we need to modify setting.py file</p>
+<pre><code>nano /usr/share/openstack-dashboard/openstack_dashboard/settings.py</code></pre>
+<p>Insert this line, that will tell to Django about proto:</p>
+<pre><code>SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')</code></pre>
+<p>In case if we are having old version of the Djando, we need to modify middleware in Django application.</p>
+<pre><code>nano /usr/share/openstack-dashboard/openstack_dashboard/middleware.py</code></pre>
+<p>Insert this class:</p>
+<pre><code>
+class ForwardedSSL(object):
+    def process_request(self, request):
+        if 'HTTP_X_FORWARDED_SSL' in request.META:
+            request.is_secure = lambda: request.META['HTTP_X_FORWARDED_SSL'] == 'on'</code></pre>
+<p>ForwardedSSL Middleware responsible for checking &#8220;X-Forwarded-Ssl&#8221; header that we set already in Nginx. <br />
+So, for http requests it is nothing changed, but for https requests it will have is_secure = True.</p>
+<p>Additionally we need to enable this middleware in settings.py:</p>
+<pre><code>nano /usr/share/openstack-dashboard/openstack_dashboard/settings.py </code></pre>
+<p>Insert new middleware here:</p>
+<pre><code>
+MIDDLEWARE_CLASSES = (
+    'openstack_dashboard.middleware.ForwardedSSL',
+    ...</code></pre>
+<p>Done</p>
+<p><b>4. Logging support</b></p>
+<p>I received the message:</p>
+<pre><code>[error] No handlers could be found for logger "openstack_dashboard"</code></pre>
+<p>I think the solution is</p>
+<pre><code>nano /etc/openstack-dashboard/local_settings.py </code></pre>
+<p>Insert this text to loggers:</p>
+<pre><code>
+'openstack_dashboard': {
+  'handlers': ['console'],
+  'propagate': False,
+}</code></pre>
+<p>Restart apache2</p>
+<pre><code>/etc/init.d/apache2 reload</code></pre>
+<p>Done.</p>
+</div>
+
+<br clear="all" />
+<div class="fb-comments" data-href="http://alex.shvid.com" data-num-posts="5" data-width="1000"></div>
+
+<div id="related">
+  <h2>Related Posts</h2>
+  <ul class="posts">
+    
+      <li><span>01 Nov 2012</span> &raquo; <a href="/2012/11/01/chef-nginx-customization.html">Nginx customization by Chef</a></li>
+    
+      <li><span>31 Oct 2012</span> &raquo; <a href="/2012/10/31/chef-ubuntu-install.html">How to install Chef Server 0.10 on Ubuntu 12.4</a></li>
+    
+      <li><span>31 Oct 2012</span> &raquo; <a href="/2012/10/31/chef-nginx-install.html">How to install Nginx by Chef</a></li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="footer">
+    <div class="blog">
+      <p>
+          This blog is an <a href="https://github.com/shvid/shvid.github.com">opensource</a> project.
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        Alex Shvid
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://www.linkedin.com/in/shvid">linkedin.com/in/shvid</a><br />
+        <a href="https://twitter.com/#!/AlexShvid">twitter.com/#!/AlexShvid</a><br />
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://code.shvid.com">code.shvid.com</a><br />
+        <a href="https://github.com/shvid">github.com/shvid</a><br />
+      </p>
+    </div>    
+    <div class="contact">
+      <p>
+        <a href="https://passport.webmoney.ru/asp/certview.asp?wmid=815648224379&viewall=1">WMID:815648224379</a><br />
+      </p>
+    </div>    
+  </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(selectMenu());
+</script>
+
+<script type="text/javascript">
+  (function() {
+    var _sw = document.createElement('script'); _sw.type = 'text/javascript'; _sw.async = true;
+    _sw.src = 'https://suggest.io/js';
+    var _sh = document.getElementsByTagName('head')[0]; _sh.appendChild(_sw);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <meta http-equiv="cache-control" content="no-cache">
+   <meta property="fb:admins" content="503582880"/>
+   <meta property="fb:app_id" content="188928671231690"/>
+   <title>Nginx customization by Chef</title>
+   <meta name="author" content="Alex Shvid" />
+
+   <!-- syntax highlighting CSS -->
+   <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+
+   <!-- Homepage CSS -->
+   <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+   <script src="/js/main.js"></script>
+
+</head>
+<body>
+
+<div class="site">
+  <div class="title" id="menuId">
+    <a class="extra" href="/">Blog</a>
+    <a class="extra" href="/tools.html">Tools</a>
+    <a class="extra" href="/author.html">Author</a>
+  </div>
+
+  <div id="post">
+<h1>Nginx customization by Chef</h1>
+<p class="meta">01 Nov 2012 &#8211; Moscow</p>
+<p>This is an example how to customize Nginx by Chef.</p>
+<p>Nginx is the reverse proxy server, that I usually use as load balancer in my solutions. Now I have requirement how to simplify the configuration of the Nginx and to support it by some remote service.</p>
+<p>The first step is to manage web sites by Chef. We will create DataBag that will contains all information about sites and where to redirect requests from Nginx.</p>
+<p><b>1. Data Bag Creation</b></p>
+<p>Assume that we have Nginx installed in our network and some machines with internal IP addresses that serves requests. We want to support simple list of the servers and addresses where to redirect <span class="caps">HTTP</span> requests.</p>
+<p>Let&#8217;s create simple data bag <a href="/files/2012-11-01/data_bags/fronta.json">fronta.json</a></p>
+<pre><code>
+{
+  "id": "fronta",
+  "forwards": [
+    {
+      "site": "site1",
+      "hostnames": "site1-example.com www.site1-example.com www2.site1-example.com",
+      "url": "http://192.168.1.123:8080/",
+      "enabled": "true"
+    },
+    {
+      "site": "site2",
+      "hostnames": "site2-example.com www.site2-example.com",
+      "url": "http://192.168.1.122:8080/",
+      "enabled": "true"
+    }    
+  ],
+  "ssl_forwards": [
+    {
+      "alias": "ssl-site1",
+      "url": "http://192.168.123:8443/ssl-site1/"
+    },
+    {
+      "alias": "ssl-site2",
+      "url": "http://192.168.122:8443/ssl-site2/"
+    }
+  ]
+}</code></pre>
+<p>In this Data Bag we are having two sections: forwards and ssl_forwards. The first one is used for simple <span class="caps">HTTP</span> forwards for internal machines, the second one for <span class="caps">SSL</span>.</p>
+<p>When <span class="caps">HTTP</span> request comes to port 80 with server name &#8220;site1-example.com&#8221; then Nginx forwards request to http://192.168.1.123:8080/ in our internal network.</p>
+<p>When <span class="caps">HTTPS</span> request comes to port 443 like https://out-nginx-machine.com/ssl-site1/ then Nginx forwards it to http://192.168.123:8443/ssl-site1/</p>
+<p>We need to upload data bag to Chef Server by command:</p>
+<pre><code>knife data bag from file fronta fronta.json</code></pre>
+<p>You will see message:</p>
+<pre><code>Updated data_bag_item[fronta::fronta]</code></pre>
+<p><b>2. Role Creation</b></p>
+<p>Crete the role <a href="/files/2012-11-01/roles/fronta.rb">fronta.rb</a> and upload this role to Chef Server:</p>
+<pre><code>knife role from file fronta.rb</code></pre>
+<p>You will see message:</p>
+<pre><code>Updated Role fronta!</code></pre>
+<p>Assign role to the node:</p>
+<pre><code>knife node run_list add front_node "role[fronta]"</code></pre>
+<p><b>3. Cookbook modification</b></p>
+<p>In the previous <a href="/2012/10/31/chef-nginx-install.html">article</a> we successfully installed Nginx by Chef.<br />
+And now we are going to modify cookbook nginx to add nginx::fronta recipe.</p>
+<p>Create the recipe <a href="/files/2012-11-01/cookbook/fronta.rb">nginx/recipes/fronta.rb</a></p>
+<p>Uncomment this block in order to automate ssl.key installation, place your ssl.key file to the &#8220;nginx/files/default/ssl/ssl.key&#8221; in the cookbook.</p>
+<p>In other case, place manually ssl.key to /etc/nginx/ssl.key on the front_node.</p>
+<pre>
+
+<code>#cookbook_file "#{node['nginx']['dir']}/ssl.key" do
+#  source "ssl/ssl.key"
+#  owner "root"
+#  group "root"
+#  mode "0600"
+#end</code></pre>
+<p></p>
+<p>Place you ssl.crt file to the &#8220;nginx/files/default/ssl/ssl.crt&#8221;, this file could be chained if you have intermediate certificate.</p>
+<p>Create template file <a href="/files/2012-11-01/cookbook/forward-site.erb">nginx/templates/default/forward-site.erb</a><br />
+Create <span class="caps">SSL</span> template file <a href="/files/2012-11-01/cookbook/ssl-site.erb">nginx/templates/default/ssl-site.erb</a></p>
+<p>Upload cookbook to the Chef Server</p>
+<pre><code>knife cookbook upload nginx</code></pre>
+<p><b>4. Operations</b></p>
+<p>Now each time when you have new site in nginx, you need only to modify fronta.json file and to upload data bag</p>
+<pre><code>knife data bag from file fronta fronta.json</code></pre>
+<p>You could manage data bags from Chef Server and through <span class="caps">API</span>.</p>
+<p>Chef-client automatically refreshed settings from Chef Server, if you want to speed up this process then go to the front_node and run:</p>
+<pre><code>sudo -i
+chef-client</code></pre>
+<p>Done.</p>
+</div>
+
+<br clear="all" />
+<div class="fb-comments" data-href="http://alex.shvid.com" data-num-posts="5" data-width="1000"></div>
+
+<div id="related">
+  <h2>Related Posts</h2>
+  <ul class="posts">
+    
+      <li><span>02 Nov 2012</span> &raquo; <a href="/2012/11/02/openstack-dashboard-customization.html">OpenStack Dashboard Customization</a></li>
+    
+      <li><span>31 Oct 2012</span> &raquo; <a href="/2012/10/31/chef-ubuntu-install.html">How to install Chef Server 0.10 on Ubuntu 12.4</a></li>
+    
+      <li><span>31 Oct 2012</span> &raquo; <a href="/2012/10/31/chef-nginx-install.html">How to install Nginx by Chef</a></li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="footer">
+    <div class="blog">
+      <p>
+          This blog is an <a href="https://github.com/shvid/shvid.github.com">opensource</a> project.
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        Alex Shvid
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://www.linkedin.com/in/shvid">linkedin.com/in/shvid</a><br />
+        <a href="https://twitter.com/#!/AlexShvid">twitter.com/#!/AlexShvid</a><br />
+      </p>
+    </div>
+    <div class="contact">
+      <p>
+        <a href="http://code.shvid.com">code.shvid.com</a><br />
+        <a href="https://github.com/shvid">github.com/shvid</a><br />
+      </p>
+    </div>    
+    <div class="contact">
+      <p>
+        <a href="https://passport.webmoney.ru/asp/certview.asp?wmid=815648224379&viewall=1">WMID:815648224379</a><br />
+      </p>
+    </div>    
+  </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(selectMenu());
+</script>
+
+<script type="text/javascript">
+  (function() {
+    var _sw = document.createElement('script'); _sw.type = 'text/javascript'; _sw.async = true;
+    _sw.src = 'https://suggest.io/js';
+    var _sh = document.getElementsByTagName('head')[0]; _sh.appendChild(_sw);
+  })();
+</script>
+
+</body>
+</html>

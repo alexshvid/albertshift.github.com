@@ -1,4 +1,6 @@
 safe: false
 markdown: rdiscount
 pygments: true
+source: ./_jekyll
+destination: ./site
 
