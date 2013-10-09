@@ -7,7 +7,7 @@ include WEBrick
 # Create server
 server = HTTPServer.new(
   :Port            => 8080,
-  :DocumentRoot    => "_site"
+  :DocumentRoot    => "site"
 )
 
 # When the server gets a control-C, kill it
